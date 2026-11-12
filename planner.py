@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GTNH production line planner — entry point / Планировщик линий GTNH — точка входа.
+"""GregFlow, a GTNH production line planner — entry point / GregFlow, планировщик линий GTNH — точка входа.
 
     python planner.py                    # start and open the browser / запустить и открыть браузер
     python planner.py --mc-dir PATH      # Minecraft folder, read-only / папка Minecraft (только чтение)
@@ -57,7 +57,7 @@ def free_port(start: int) -> int:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="GTNH production line planner")
+    ap = argparse.ArgumentParser(description="GregFlow, a GTNH production line planner")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--mc-dir", help="Minecraft/GTNH folder (read-only); by default searched upwards and in settings")
     ap.add_argument("--no-browser", action="store_true")
@@ -103,7 +103,7 @@ def main():
     url = f"http://127.0.0.1:{port}/"
     print()
     print("=" * 64)
-    print(f"  Planner is running / планировщик запущен:  {url}")
+    print(f"  GregFlow is running / GregFlow запущен:  {url}")
     print("  Keep this window open while you use it; close it to stop.")
     print("  Не закрывайте это окно, пока работаете; закройте — чтобы остановить.")
     print("=" * 64)

@@ -1,9 +1,9 @@
 @echo off
-rem GTNH Planner launcher for Windows: double-click this file.
+rem GregFlow (GTNH line planner) launcher for Windows: double-click this file.
 rem Запуск планировщика в Windows: дважды щёлкните этот файл.
 chcp 65001 >nul
 cd /d "%~dp0"
-title GTNH Planner
+title GregFlow
 
 set "PY="
 where py >nul 2>nul && py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>nul && set "PY=py -3"

@@ -69,7 +69,7 @@ def _read(path):
 
 # ---------------------------------------------------------------- fetch
 def _get(url, timeout=60, tries=4):
-    req = urllib.request.Request(url, headers={"User-Agent": "gtnh-planner"})
+    req = urllib.request.Request(url, headers={"User-Agent": "GregFlow"})
     for i in range(tries):
         try:
             return urllib.request.urlopen(req, timeout=timeout).read()

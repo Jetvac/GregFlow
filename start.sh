@@ -1,5 +1,5 @@
 #!/bin/sh
-# GTNH Planner launcher for Linux / macOS: run ./start.sh (or double-click start.command on macOS).
+# GregFlow (GTNH line planner) launcher for Linux / macOS: run ./start.sh (or double-click start.command on macOS).
 # Запуск планировщика в Linux / macOS.
 cd "$(dirname "$0")" || exit 1
 for py in python3 python; do

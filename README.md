@@ -1,8 +1,8 @@
-# GTNH Planner
+# GregFlow
 
 **English** · [Русский](README.ru.md)
 
-A production line planner for **GregTech: New Horizons** (Minecraft 1.7.10). Build a line from real
+**GregFlow** is a production line planner for **GregTech: New Horizons** (Minecraft 1.7.10). Build a line from real
 GTNH recipes on a canvas, the way NEI shows them, and see on every link how much is needed, how much
 arrives, and where the shortages and surpluses are. It also covers energy (generators, cables,
 losses), recycling loops and blocks (a node made of nodes). The interface is in English or Russian.
@@ -28,8 +28,8 @@ files are never changed.
 
 ### Windows
 
-1. **Download** the latest `GTNH-Planner-….zip` from the
-   [Releases page](https://github.com/Jetvac/GTNH-Planner/releases/latest) and **unzip** it anywhere
+1. **Download** the latest `GregFlow-….zip` from the
+   [Releases page](https://github.com/Jetvac/GregFlow/releases/latest) and **unzip** it anywhere
    (for example into `Documents`).
 2. **Double-click `start.bat`.**
    - If Python is missing, the window offers to install it for you (answer `Y`), or opens

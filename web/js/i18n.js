@@ -79,8 +79,7 @@ export function translateStatic(root = document.body) {
 
 const EN = {
   // ---- page / toolbar
-  'Планировщик линий GTNH': 'GTNH Line Planner',
-  'GTNH · планировщик': 'GTNH · planner',
+  'GregFlow — планировщик линий GTNH': 'GregFlow — GTNH line planner',
   'Новая': 'New', 'Открыть': 'Open', 'Сохранить': 'Save', 'Экспорт': 'Export', 'Импорт': 'Import', 'Демо': 'Demo',
   'Новая схема': 'New schematic',
   'Открыть из папки projects/': 'Open from the projects/ folder',

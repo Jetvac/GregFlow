@@ -1,4 +1,4 @@
-"""GTNH production line planner - local HTTP server (Python stdlib only).
+"""GregFlow (GTNH production line planner) - local HTTP server (Python stdlib only).
 
 Binds to 127.0.0.1. All writes go to the planner's own data/ and projects/
 folders. The Minecraft installation (if any) is only read by install_check.
@@ -414,10 +414,10 @@ class Planner:
 # ====================================================================
 class Handler(BaseHTTPRequestHandler):
     planner: Planner = None  # set by make_server
-    server_version = "GTNHPlanner/" + APP_VERSION
+    server_version = "GregFlow/" + APP_VERSION
 
     def log_message(self, fmt, *args):  # quieter console
-        if os.environ.get("GTNH_PLANNER_VERBOSE"):
+        if os.environ.get("GREGFLOW_VERBOSE") or os.environ.get("GTNH_PLANNER_VERBOSE"):
             super().log_message(fmt, *args)
 
     # ---- helpers ----

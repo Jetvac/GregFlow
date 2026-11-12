@@ -67,7 +67,7 @@ def missing_files(data_dir: str) -> list[dict]:
 
 def download(item: dict, progress=None) -> None:
     """Download one file to a temp name, verify SHA-256, then move it in place."""
-    req = urllib.request.Request(item["url"], headers={"User-Agent": "gtnh-planner"})
+    req = urllib.request.Request(item["url"], headers={"User-Agent": "GregFlow"})
     tmp = item["dest"] + ".part"
     os.makedirs(os.path.dirname(item["dest"]), exist_ok=True)
     h = hashlib.sha256()
