@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "active": "gtnh-2.8.0",
+  "datasets": [
+    {
+      "id": "gtnh-2.8.0",
+      "label": "GTNH 2.8.0",
+      "packVersion": "2.8.0",
+      "available": true,
+      "verified": true,
+      "origin": "builtin",
+      "format": 5,
+      "file": "datasets/gtnh-2.8.0/data.bin",
+      "atlas": "datasets/gtnh-2.8.0/atlas.webp",
+      "sha256": "b0ff8d63f3104e979628c64e650cab17bf0b442e01bdb00c1d8f54c458a3eccc",
+      "uncompressedSha256": "f3b57c9fbc1d613ff585fe505a990af349161f23aad45b5bcd1519a1af42e626",
+      "atlasSha256": "fa05550ce9657ce49d4512b4aab7fe76d684b70745b0bc7b744c9ae0d6eb6ef5",
+      "gitBlob": "b1d2a893b744f94a74b0e481a210c9aa4ae92374",
+      "atlasGitBlob": "375b307c70f1199910170e4eac7c87d25eda8dfd",
+      "counts": {"items": 41091, "fluids": 1542, "recipes": 190080},
+      "source": "https://github.com/ShadowTheAge/gtnh-data/tree/6d35153688de5ae8e02807b942099618de1d9276",
+      "sourceBranch": "2.8.0-v5",
+      "sourceRevision": "6d35153688de5ae8e02807b942099618de1d9276",
+      "downloadUrl": "https://raw.githubusercontent.com/ShadowTheAge/gtnh-data/6d35153688de5ae8e02807b942099618de1d9276/data.bin",
+      "atlasDownloadUrl": "https://raw.githubusercontent.com/ShadowTheAge/gtnh-data/6d35153688de5ae8e02807b942099618de1d9276/atlas.webp",
+      "verification": "Git blob IDs, SHA-256 and record counts match gtnhnei manifest entry gtnh-2.8.0 and upstream branch 2.8.0-v5; re-verified 2026-11-11."
+    },
+    {
+      "id": "gtnh-2.8.4",
+      "label": "GTNH 2.8.4",
+      "packVersion": "2.8.4",
+      "available": false,
+      "verified": false,
+      "reason": "Проверено 2026-11-11: проверяемого экспорта рецептов для 2.8.4 нет. В gtnhnei manifest 2.8.4 помечен available:false; в ShadowTheAge/gtnh-data есть только ветки 2.8.0-v4/v5/v6, 2.9.0-v7, main; публичный манифест gtnh-factory-flow недоступен (возвращает HTML). Можно импортировать собственный экспорт data.bin (формат 5 или 7)."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>Тесты планировщика</title>
+<style>body{font:14px system-ui;background:#17181b;color:#e3e5e8;padding:20px}li.ok{color:#4cc66b}li.fail{color:#ff5a52}</style></head>
+<body>
+<h2>Тесты решателя и модели</h2>
+<p>Используются синтетические тестовые рецепты, не данные каталога.</p>
+<div id="sum"></div><ol id="out"></ol>
+<script>globalThis.__forceUiLang = 'ru'; // tests check Russian problem texts</script>
+<script type="module">
+import { run } from './js/solver.test.js';
+const res = run();
+window.testResults = res;
+document.getElementById('out').innerHTML = res.map(r => `<li class="${r.ok ? 'ok' : 'fail'}">${r.ok ? '✓' : '✗'} ${r.name}${r.error ? ' — ' + r.error : ''}</li>`).join('');
+const failed = res.filter(r => !r.ok).length;
+document.getElementById('sum').textContent = `Пройдено ${res.length - failed} из ${res.length}`;
+</script>
+</body></html>

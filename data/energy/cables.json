@@ -1,0 +1,589 @@
+{
+ "records": [
+  {
+   "material": "RedAlloy",
+   "startId": 2000,
+   "tier": "ULV",
+   "voltage": 8,
+   "amperage": 1,
+   "lossCable": 0,
+   "lossWire": 1,
+   "wireOnly": false
+  },
+  {
+   "material": "Cobalt",
+   "startId": 1200,
+   "tier": "LV",
+   "voltage": 32,
+   "amperage": 2,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Lead",
+   "startId": 1220,
+   "tier": "LV",
+   "voltage": 32,
+   "amperage": 2,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "Tin",
+   "startId": 1240,
+   "tier": "LV",
+   "voltage": 32,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Zinc",
+   "startId": 1260,
+   "tier": "LV",
+   "voltage": 32,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "SolderingAlloy",
+   "startId": 1280,
+   "tier": "LV",
+   "voltage": 32,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Iron",
+   "startId": 1300,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 2,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "Nickel",
+   "startId": 1320,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 3,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "Cupronickel",
+   "startId": 1340,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 4,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "Copper",
+   "startId": 1360,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 1,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "AnnealedCopper",
+   "startId": 1380,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Kanthal",
+   "startId": 1400,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 5,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "Gold",
+   "startId": 1420,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 3,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "Electrum",
+   "startId": 1440,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 2,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Silver",
+   "startId": 1460,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "BlueAlloy",
+   "startId": 1480,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 2,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Nichrome",
+   "startId": 1500,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 6,
+   "lossCable": 4,
+   "lossWire": 8,
+   "wireOnly": false
+  },
+  {
+   "material": "Steel",
+   "startId": 1520,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 2,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "BlackSteel",
+   "startId": 1540,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 4,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Titanium",
+   "startId": 1560,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 4,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "Aluminium",
+   "startId": 1580,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 1,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "TPV",
+   "startId": 1840,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 6,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "Graphene",
+   "startId": 1600,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 1,
+   "lossCable": null,
+   "lossWire": 2,
+   "wireOnly": true
+  },
+  {
+   "material": "Platinum",
+   "startId": 1640,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 2,
+   "lossCable": 1,
+   "lossWire": 2,
+   "wireOnly": false
+  },
+  {
+   "material": "TungstenSteel",
+   "startId": 1660,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 4,
+   "lossCable": 4,
+   "lossWire": 8,
+   "wireOnly": false
+  },
+  {
+   "material": "Tungsten",
+   "startId": 1680,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 6,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "Osmium",
+   "startId": 1620,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 4,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "HSSG",
+   "startId": 1700,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 4,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "NiobiumTitanium",
+   "startId": 1720,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 4,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "VanadiumGallium",
+   "startId": 1740,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 4,
+   "lossCable": 4,
+   "lossWire": 8,
+   "wireOnly": false
+  },
+  {
+   "material": "YttriumBariumCuprate",
+   "startId": 1760,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 6,
+   "lossCable": 3,
+   "lossWire": 6,
+   "wireOnly": false
+  },
+  {
+   "material": "Naquadah",
+   "startId": 1780,
+   "tier": "ZPM",
+   "voltage": 131072,
+   "amperage": 2,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "NaquadahAlloy",
+   "startId": 1800,
+   "tier": "UV",
+   "voltage": 524288,
+   "amperage": 6,
+   "lossCable": 4,
+   "lossWire": 8,
+   "wireOnly": false
+  },
+  {
+   "material": "Duranium",
+   "startId": 1820,
+   "tier": "UV",
+   "voltage": 524288,
+   "amperage": 4,
+   "lossCable": 2,
+   "lossWire": 4,
+   "wireOnly": false
+  },
+  {
+   "material": "Pentacadmiummagnesiumhexaoxid",
+   "startId": 2200,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 1,
+   "lossCable": null,
+   "lossWire": 2,
+   "wireOnly": true
+  },
+  {
+   "material": "Titaniumonabariumdecacoppereikosaoxid",
+   "startId": 2220,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 2,
+   "lossCable": null,
+   "lossWire": 8,
+   "wireOnly": true
+  },
+  {
+   "material": "Uraniumtriplatinid",
+   "startId": 2240,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 3,
+   "lossCable": null,
+   "lossWire": 16,
+   "wireOnly": true
+  },
+  {
+   "material": "Vanadiumtriindinid",
+   "startId": 2260,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 4,
+   "lossCable": null,
+   "lossWire": 64,
+   "wireOnly": true
+  },
+  {
+   "material": "Tetraindiumditindibariumtitaniumheptacoppertetrakaidekaoxid",
+   "startId": 2280,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 6,
+   "lossCable": null,
+   "lossWire": 256,
+   "wireOnly": true
+  },
+  {
+   "material": "Tetranaquadahdiindiumhexaplatiumosminid",
+   "startId": 2300,
+   "tier": "ZPM",
+   "voltage": 131072,
+   "amperage": 8,
+   "lossCable": null,
+   "lossWire": 1024,
+   "wireOnly": true
+  },
+  {
+   "material": "Longasssuperconductornameforuvwire",
+   "startId": 2500,
+   "tier": "UV",
+   "voltage": 524288,
+   "amperage": 12,
+   "lossCable": null,
+   "lossWire": 4096,
+   "wireOnly": true
+  },
+  {
+   "material": "Longasssuperconductornameforuhvwire",
+   "startId": 2520,
+   "tier": "UHV",
+   "voltage": 2097152,
+   "amperage": 16,
+   "lossCable": null,
+   "lossWire": 16384,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUEVBase",
+   "startId": 2032,
+   "tier": "UEV",
+   "voltage": 8388608,
+   "amperage": 24,
+   "lossCable": null,
+   "lossWire": 65536,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUIVBase",
+   "startId": 2052,
+   "tier": "UIV",
+   "voltage": 33554432,
+   "amperage": 32,
+   "lossCable": null,
+   "lossWire": 262144,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUMVBase",
+   "startId": 2072,
+   "tier": "UMV",
+   "voltage": 134217728,
+   "amperage": 32,
+   "lossCable": null,
+   "lossWire": 1048576,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorMV",
+   "startId": 2320,
+   "tier": "MV",
+   "voltage": 128,
+   "amperage": 4,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorHV",
+   "startId": 2340,
+   "tier": "HV",
+   "voltage": 512,
+   "amperage": 6,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorEV",
+   "startId": 2360,
+   "tier": "EV",
+   "voltage": 2048,
+   "amperage": 8,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorIV",
+   "startId": 2380,
+   "tier": "IV",
+   "voltage": 8192,
+   "amperage": 12,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorLuV",
+   "startId": 2400,
+   "tier": "LuV",
+   "voltage": 32768,
+   "amperage": 16,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorZPM",
+   "startId": 2420,
+   "tier": "ZPM",
+   "voltage": 131072,
+   "amperage": 24,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUV",
+   "startId": 2440,
+   "tier": "UV",
+   "voltage": 524288,
+   "amperage": 32,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUHV",
+   "startId": 2020,
+   "tier": "UHV",
+   "voltage": 2097152,
+   "amperage": 48,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUEV",
+   "startId": 2026,
+   "tier": "UEV",
+   "voltage": 8388608,
+   "amperage": 64,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUIV",
+   "startId": 2081,
+   "tier": "UIV",
+   "voltage": 33554432,
+   "amperage": 64,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "SuperconductorUMV",
+   "startId": 2089,
+   "tier": "UMV",
+   "voltage": 134217728,
+   "amperage": 64,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  },
+  {
+   "material": "Ichorium",
+   "startId": 2600,
+   "tier": "UHV",
+   "voltage": 2097152,
+   "amperage": 12,
+   "lossCable": null,
+   "lossWire": 8,
+   "wireOnly": true
+  },
+  {
+   "material": "SpaceTime",
+   "startId": 2606,
+   "tier": "MAX",
+   "voltage": 2147483648,
+   "amperage": 1000000,
+   "lossCable": null,
+   "lossWire": 0,
+   "wireOnly": true
+  }
+ ],
+ "jar": "gregtech-5.09.51.482.jar",
+ "jarSha256": "4ab7ce174a8f6fb7a90d8d11d56056aab2de577c36c6084b37ce890d7b1d67bf",
+ "extractor": 1,
+ "class": "gregtech/loaders/preload/LoaderMetaPipeEntities.class",
+ "extractedAt": "2026-11-11T15:19:56Z"
+}

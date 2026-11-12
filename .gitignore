@@ -1,0 +1,17 @@
+# downloaded on first start (not redistributable / large)
+data/datasets/
+data/lang/
+# per-user state
+data/custom/
+data/settings.json
+projects/
+*.part
+*.tmp
+# python
+__pycache__/
+*.pyc
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
