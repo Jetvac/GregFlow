@@ -4,7 +4,7 @@ const get = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON
 const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
 const brief = g => ({ kind: g.kind || 'item', id: g.id, name: g.name, nameRu: g.nameRu, icon: g.icon });
 
-const RECENT = 'gregflow-recent-goods', FAVS = 'gregflow-fav-goods', CLIP = 'gregflow-clipboard', LABELS = 'gregflow-edge-labels';
+const RECENT = 'gregflow-recent-goods', FAVS = 'gregflow-fav-goods', CLIP = 'gregflow-clipboard', LABELS = 'gregflow-edge-labels', ARM = 'gregflow-arm-slots';
 
 export const prefs = {
   recent: () => get(RECENT, []),
@@ -22,4 +22,6 @@ export const prefs = {
   setClipboard(c) { set(CLIP, c); },
   labels: () => get(LABELS, 'all'),
   setLabels(v) { set(LABELS, v); },
+  armSlots: () => get(ARM, true),
+  setArmSlots(v) { set(ARM, !!v); },
 };

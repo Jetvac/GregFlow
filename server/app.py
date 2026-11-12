@@ -22,7 +22,22 @@ from . import lang as langmod
 from . import energy as energymod
 from . import setup as setupmod
 
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.1.0"
+
+
+def _code_stamp() -> tuple:
+    """Sizes and times of the server's own .py files: changes when the code on disk is updated."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    out = []
+    for f in sorted(os.listdir(here)):
+        if f.endswith(".py"):
+            st = os.stat(os.path.join(here, f))
+            out.append((f, st.st_size, st.st_mtime_ns))
+    return tuple(out)
+
+
+# taken when the server starts; Python keeps running this code even if the files are replaced
+_CODE_AT_START = _code_stamp()
 MAX_UPLOAD = 200 * 1024 * 1024
 MIME = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
         ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
@@ -199,6 +214,17 @@ class Planner:
                 self.attach_names()
             return self.names_status
 
+    def machine_slots(self) -> dict:
+        """Item slot counts of GT single-block machines (data/gt-machine-slots.json, from the GT source)."""
+        if getattr(self, "_machine_slots", None) is None:
+            path = os.path.join(self.root, "data", "gt-machine-slots.json")
+            try:
+                with open(path, encoding="utf-8") as f:
+                    self._machine_slots = json.load(f)
+            except (OSError, ValueError):
+                self._machine_slots = {"machines": {}}
+        return self._machine_slots
+
     def energy(self) -> dict:
         if self.energy_data is None:
             self.energy_data = energymod.load(self.data_dir, self.install_path(), self.catalog)
@@ -264,6 +290,7 @@ class Planner:
         active = self.dataset_entry(reg.get("active"))
         return {
             "app": APP_VERSION,
+            "stale": _code_stamp() != _CODE_AT_START,
             "datasets": reg["datasets"],
             "active": active,
             "catalog": self.catalog.stats() if self.catalog else None,
@@ -546,6 +573,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(P.save_settings(self.json_body() or {}))
         if route == "lang/fetch" and method == "POST":
             return self.send_json(P.fetch_lang())
+        if route == "machineslots" and method == "GET":
+            return self.send_json(P.machine_slots())
         if route == "energy" and method == "GET":
             return self.send_json(P.energy())
         if route == "energy/fuels" and method == "GET":

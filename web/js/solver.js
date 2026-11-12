@@ -1,9 +1,11 @@
 // Throughput solver. Pure function of the project; all rates are per second.
 //
 // Model
-//  * machine: capacity = count × 20 / durationTicks cycles/s. Machine tier ≥ recipe tier;
-//    each tier above the recipe applies a standard GT overclock (duration ÷2, EU/t ×4;
-//    "perfect" overclock: duration ÷4), never below 1 tick.
+//  * machine: capacity = count × parallel × 20 / durationTicks cycles/s. Overclocks follow
+//    GT 5.09.51 exactly (overclock.js): a single block overclocks once per voltage tier above
+//    the recipe (duration ÷2, or ÷4 "perfect"; EU/t ×4; not below 1 tick). A multiblock
+//    (n.multi) overclocks by the power of its energy hatches, runs parallels, applies its
+//    speed / EU bonuses and, for heat recipes, coil heat (EU discount and ÷4 heat overclocks).
 //    Utilisation u = min(1, supplied/need) over consumed inputs. Outputs =
 //    amount × probability × cycles × u (expected value).
 //  * edge demand  = what the consumer would take at full capacity (sink = ∞;
@@ -41,6 +43,7 @@
 import { $t, lbl, uiLang } from './i18n.js';
 import { ports, recipeOf, ENERGY, energyOn, isEnergyRes } from './model.js';
 import { TIER_V, nm, mname } from './fmt.js';
+import { singleOc, multiOc, ebfHeat } from './overclock.js';
 
 const ITER = 3000;
 const BIG = 1e12;          // "unlimited" supply of a block input (per second)
@@ -112,11 +115,25 @@ export function recipeTier(r) {
   return 0;
 }
 
-/** Machine tier of a node (migrates old `oc` field). */
+/** Machine tier of a node (migrates old `oc` field). A multiblock's tier is its energy hatch tier,
+ * which may be below the recipe tier (several hatches add up). */
 export function machineTier(n, r) {
   const rt = recipeTier(r);
   const t = n.tier != null ? n.tier : rt + (n.oc || 0);
-  return Math.max(rt, Math.min(TIER_V.length - 1, t));
+  return Math.max(n.multi ? 0 : rt, Math.min(TIER_V.length - 1, t));
+}
+
+export const EBF_ID = 'i:gregtech:gt.blockmachines:1000';
+/** Heat a recipe needs (GT coil_heat metadata = the recipe's special value), or null. */
+export function recipeHeat(r) {
+  const m = (r?.gt?.metadata || []).find(x => x.key === 'coil_heat');
+  return m ? m.value : null;
+}
+/** Heat of the multiblock of node n: the EBF formula, or what the user entered; null when unknown. */
+export function machineHeat(n, r) {
+  if (!n.multi || recipeHeat(r) == null) return null;
+  if (n.multi === EBF_ID) return n.coil != null ? ebfHeat(n.coil, machineTier(n, r), n.hatches) : null;
+  return n.heat > 0 ? +n.heat : null;
 }
 
 export function machineParams(n, r) {
@@ -125,22 +142,29 @@ export function machineParams(n, r) {
   const tier = machineTier(n, r);
   let ticks = gt?.durationTicks ?? null;
   let eut = gt?.eut ?? null;
-  let ocs = 0;
-  if (ticks != null) {
-    const div = n.perfectOc ? 4 : 2;
-    for (let k = 0; k < tier - rt; k++) {
-      if (ticks / div < 1) break; // GT stops overclocking at 1 tick
-      ticks = Math.floor(ticks / div);
-      if (eut != null) eut *= 4;
-      ocs++;
-    }
+  let ocs = 0, parallel = 1, multi = null;
+  if (gt && n.multi) {
+    const rh = recipeHeat(r), mh = machineHeat(n, r);
+    const ebf = n.multi === EBF_ID;
+    multi = multiOc(eut, ticks, {
+      tier, hatches: n.hatches, perfect: !!n.perfectOc,
+      parallel: ebf ? 1 : n.parallel, speedPct: ebf ? 0 : n.speedPct, euPct: ebf ? 100 : n.euPct,
+      heat: rh != null && mh != null ? { recipe: rh, machine: mh } : null,
+    });
+    multi.recipeHeat = rh; multi.machineHeat = mh; multi.heatUnknown = rh != null && mh == null;
+    ({ ticks, eut, ocs, parallel } = multi);
+  } else if (gt && ticks != null) {
+    ({ ticks, eut, ocs } = singleOc(eut, ticks, tier, !!n.perfectOc));
+  } else if (gt && eut != null) {
+    eut = singleOc(eut, null, tier, !!n.perfectOc).eut;
   }
-  let perMachine = null; // cycles per second for one machine
+  let perMachine = null; // cycles per second for one machine (one cycle = one recipe run)
   let override = false;
   if (n.cycleOverride > 0) { perMachine = n.cycleOverride / 60; override = true; }
-  else if (ticks) perMachine = 20 / ticks;
+  else if (multi?.blocked) perMachine = 0;
+  else if (ticks) perMachine = 20 / ticks * parallel;
   const count = Math.max(0, n.count ?? 1);
-  return { ticks, eut, tier, recipeTier: rt, ocs, perMachine, override, count, cycles: perMachine == null ? null : perMachine * count };
+  return { ticks, eut, tier, recipeTier: rt, ocs, parallel, multi, perMachine, override, count, cycles: perMachine == null ? null : perMachine * count };
 }
 
 /** Generator parameters: capacity EU/t and effective EU per unit of fuel. */
@@ -603,6 +627,13 @@ export function solve(p, opts = {}) {
       res.limitedBy = u < 1 - 1e-7 ? worst : null;
       res.energyNeed = eNeed(n.id); res.energyRequest = eRequest(n.id);
       if (mp?.cycles == null) problems.push({ kind: 'noduration', node: n.id, text: `${label(n, r)}${$t(": в рецепте нет длительности — задайте циклы/мин вручную")}` });
+      const mb = mp?.multi;
+      if (mb?.blocked && !mp.override) problems.push({ kind: 'multiblock', node: n.id, text: `${label(n, r)}: ${({
+        heat: `${$t('не хватает нагрева —')} ${num0(mb.machineHeat)} K ${$t('из')} ${num0(mb.recipeHeat)} K`,
+        power: `${$t('энергоразъёмы дают')} ${num0(mb.avail)} EU/t, ${$t('рецепту нужно больше')}`,
+        voltage: `${$t('напряжение разъёмов слишком низкое для рецепта (не больше чем на 1 уровень ниже)')}`,
+      })[mb.blocked]}` });
+      else if (mb?.heatUnknown && !mp.override) problems.push({ kind: 'multiblock', node: n.id, text: `${label(n, r)}${$t(': не задан нагрев машины — бонусы нагрева не учтены, проверьте, хватает ли его рецепту')}` });
     }
     if (n.type === 'group') {
       const ev = blockEval.get(n.id), pf = info.profile;

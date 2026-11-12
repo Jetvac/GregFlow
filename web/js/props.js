@@ -1,6 +1,6 @@
 // Right panel: properties of the selected node / edge, or project summary.
 import { $t, lbl } from './i18n.js';
-import { esc, num, rate, rateVal, fromUnit, unitLabel, iconHtml, seconds, TIERS, nm, mname } from './fmt.js';
+import { esc, num, rate, rateVal, fromUnit, unitLabel, iconHtml, seconds, TIERS, TIER_V, nm, mname } from './fmt.js';
 import { node as findNode, edge as findEdge, recipeOf, ports, resolveInput, NODE_TYPES, energyOn, isFuelRecipe, fuelFromOption, resolvePath, isEnergyRes } from './model.js';
 import { api } from './api.js';
 
@@ -8,9 +8,12 @@ const GT_V = [8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 83886
 const GT_T = ['ULV', 'LV', 'MV', 'HV', 'EV', 'IV', 'LuV', 'ZPM', 'UV', 'UHV', 'UEV', 'UIV', 'UMV', 'UXV'];
 const vName = v => { const i = GT_V.indexOf(+v); return i >= 0 ? GT_T[i] : ''; };
 const brief = g => ({ kind: g.kind || 'item', id: g.id, name: g.name, nameRu: g.nameRu, icon: g.icon });
-import { machineParams, recipeTier } from './solver.js';
+import { machineParams, recipeTier, recipeHeat, EBF_ID } from './solver.js';
+import { COILS } from './overclock.js';
 import { summarize } from './summary.js';
 import { fixesFor, applyFix, whyLimited, machinesForDemand, machinesForSupply } from './fixes.js';
+import { tabsHtml, cardify } from './ui.js';
+import { armSlots } from './slots.js';
 
 /** Small "?" with an explanation of a GregTech term. */
 const help = t => `<span class="qhelp" title="${esc(t)}">?</span>`;
@@ -20,6 +23,11 @@ const H = {
   eut: () => $t('EU/t — энергия за тик. В секунде 20 тиков.'),
   amps: () => $t('Ампер — сколько пакетов энергии за тик идёт по кабелю. Кабель держит ограниченное число ампер, при большем токе он сгорит.'),
   loss: () => $t('Потери: каждый блок кабеля съедает несколько EU с каждого ампера. Длинный и тонкий кабель теряет больше, сверхпроводники не теряют ничего.'),
+  hatches: () => $t('Сколько обычных энергоразъёмов (Energy Hatch) стоит на мультиблоке. Их уровень — поле «Уровень разъёмов».'),
+  parallel: () => $t('Сколько рецептов машина выполняет за раз — из подсказки мультиблока. Ограничивается и энергией разъёмов.'),
+  heat: () => $t('Нагрев этого мультиблока в кельвинах: его показывает подсказка структуры или сканер. Без него бонусы нагрева не считаются.'),
+  target: () => $t('Укажите, сколько этого продукта нужно, — планировщик посчитает, сколько машин нужно на каждом шаге линии и сколько должен давать каждый источник. Перед применением покажет план; применённое отменяется Ctrl+Z.'),
+  arm: () => $t('Номер — значение слота на роборуке (Robot Arm): слот N машины. 0 на роборуке — любой слот. Данные: GregTech 5.09.51.482 (GTNH 2.8.x), только одноблочные машины GT.'),
   eff: () => $t('КПД — какая доля энергии топлива становится EU. Берётся из описания генератора.'),
   totals: () => $t('Всё посчитано решателем для текущего состояния линии. «Сейчас» — фактический режим, «на полной» — если бы машины работали на 100%.'),
 };
@@ -43,6 +51,13 @@ export class PropsPanel {
   }
 
   render() {
+    const top = this.el.scrollTop;
+    this.view();
+    cardify(this.el);
+    this.el.scrollTop = top;
+  }
+
+  view() {
     this.fixes = [];
     const { selection: sel, project: p } = this.app;
     if (sel?.type === 'nodes') return this.multiView(sel.ids);
@@ -50,6 +65,18 @@ export class PropsPanel {
     if (this.app.path.length) return this.blockSummary();
     if (sel?.type === 'edge' && findEdge(p, sel.id)) return findEdge(p, sel.id).energy ? this.energyEdgeView(findEdge(p, sel.id)) : this.edgeView(findEdge(p, sel.id));
     return this.summary();
+  }
+
+  /** A row of big numbers at the top of a summary. */
+  statsHtml(T, probs) {
+    const tile = (v, k, cls = '', act = '') => `<div class="stat ${cls}" ${act}><div class="v">${v}</div><div class="k">${k}</div></div>`;
+    const loose = T.outputs.filter(x => x.loose > 0).length;
+    return `<div class="stats">
+      ${tile(T.machines, $t('Машин'))}
+      ${tile(num(T.powerAvg), 'EU/t ' + $t('сейчас'), 'energy')}
+      ${tile(probs.length, $t('Проблем'), probs.length ? 'bad' : 'ok', 'data-tb="probs" title="' + esc($t('нажмите, чтобы открыть список с исправлениями')) + '"')}
+      ${tile(T.outputs.length - loose, $t('Продуктов'), '', 'title="' + esc($t('Ресурсы, которые уходят на склады или дальше по линии')) + '"')}
+    </div>`;
   }
 
   /** Totals of a schematic / block / selection (see summary.js). */
@@ -95,13 +122,13 @@ export class PropsPanel {
     const p = this.app.project;
     const list = ids.map(id => findNode(p, id)).filter(Boolean);
     const groupable = list.filter(n => n.type !== 'gin' && n.type !== 'gout');
-    this.el.innerHTML = `<h3>${$t("Выделено узлов:")} ${list.length}</h3>
+    this.el.innerHTML = `<h3><span class="hico">⬚</span>${$t("Выделено узлов:")} ${list.length}</h3>
       <div class="note small">${list.map(n => this.link(n.id)).join('<br>')}</div>
       <div class="btnrow"><button data-act="group" ${groupable.length ? '' : 'disabled'}>${$t("▦ Объединить в блок (Ctrl+G)")}</button><button data-act="arrange" title="${$t("Расставить выделенные узлы по потоку (L)")}">${$t("⇶ Упорядочить")}</button></div>
-      ${this.totalsHtml(summarize(p, this.app.results, list.map(n => n.id)), $t('Итоги выделенного'))}
       <div class="note small"><b>${$t("Блок")}</b> ${$t("— узел из узлов. Связи, которые пересекают границу выделения, станут входами и выходами блока; неподключённые входы машин — тоже входами, неподключённые выходы — выходами. Блок считается точно: его внутренняя схема решается с тем, что реально приходит на входы. Открыть блок — двойной щелчок, вернуться — «⤴ Выйти из блока» или Esc.")}</div>
       <div class="btnrow"><button data-act="delsel" class="danger">${$t("Удалить выделенные")}</button></div>
-      <div class="hint">${$t("Выделение: Ctrl/Shift + щелчок по узлу, Shift + рамка по пустому месту, Ctrl+A — все.")}</div>`;
+      <div class="hint">${$t("Выделение: Ctrl/Shift + щелчок по узлу, Shift + рамка по пустому месту, Ctrl+A — все.")}</div>
+      ${this.totalsHtml(summarize(p, this.app.results, list.map(n => n.id)), $t('Итоги выделенного'))}`;
   }
 
   /** Summary shown while a block is open for editing. */
@@ -118,17 +145,17 @@ export class PropsPanel {
       return `<tr><td>${n.resource && !isEnergyRes(n.resource) ? iconHtml(n.resource, ds, 'small') : isEnergyRes(n.resource) ? '⚡' : ''}</td><td><a href="#" data-sel-node="${n.id}">${esc(lbl(n.label) || (dir === 'in' ? $t('Вход') : $t('Выход')))}</a><br><small>${esc(n.resource ? nm(n.resource) : $t('не подключён — тип по первой связи'))}</small></td><td class="num">${n.resource ? (isEnergyRes(n.resource) ? num(v || 0) + ' EU/t' : rate(v || 0, n.resource.kind)) : '—'}</td></tr>`;
     }).join('') || `<tr><td colspan="3"><small>${$t("нет — добавьте «+")} ${dir === 'in' ? $t('Вход') : $t('Выход')} ${$t("блока»")}</small></td></tr>`;
     const probs = R?.problems || [];
-    this.el.innerHTML = `<h3>${$t("▦ Блок")}</h3>
-      <label>${$t("Название блока")} <input data-f="blockname" value="${esc(lbl(b?.label) || $t('Блок'))}"></label>
+    const T = summarize(q, R);
+    this.el.innerHTML = `<h3><span class="hico">▦</span>${$t("Блок")}</h3>${tabsHtml('block', [
+      { id: 'main', label: $t('Блок'), html: `${this.statsHtml(T, probs)}<label>${$t("Название блока")} <input data-f="blockname" value="${esc(lbl(b?.label) || $t('Блок'))}"></label>
       <div class="note small">${$t("Вы внутри блока.")} ${app.blockFull ? `${$t("Показана")} <b>${$t("полная мощность")}</b>${$t(": входы без ограничения.")}` : `${$t("Показан")} <b>${$t("фактический режим")}</b>${$t(": входы получают то, что приходит на блок снаружи.")}`} ${$t("Входы и выходы блока — узлы «Вход блока» и «Выход блока»; каждый становится портом блока снаружи. Машины без своего генератора питаются от ⚡ входа блока.")}</div>
       <div class="btnrow"><button data-act="exitblk">${$t("⤴ Выйти из блока")}</button><button data-act="addgin">${$t("+ Вход блока")}</button><button data-act="addgout">${$t("+ Выход блока")}</button></div>
       <h4>${$t("Входы")}</h4><table class="io bal">${io(gins, 'in')}</table>
-      <h4>${$t("Выходы")}</h4><table class="io bal">${io(gouts, 'out')}</table>
-      ${this.totalsHtml(summarize(q, R), $t('Итоги блока'), { flows: false })}
-      <h4 id="problems">${$t("Проблемы внутри (")}${probs.length})</h4>
-      ${this.problemsHtml(probs, $t("Проблем нет."))}
-      ${this.balanceHtml(14, R)}
-      ${this.loopsHtml()}`;
+      <h4>${$t("Выходы")}</h4><table class="io bal">${io(gouts, 'out')}</table>` },
+      { id: 'problems', label: $t('Проблемы'), badge: probs.length, badgeKind: probs.length ? 'bad' : 'ok', html: `<h4 id="problems">${$t("Проблемы внутри (")}${probs.length})</h4>${this.problemsHtml(probs, $t("Проблем нет."))}` },
+      { id: 'totals', label: $t('Итоги'), html: this.totalsHtml(T, $t('Итоги блока'), { flows: false }) },
+      { id: 'balance', label: $t('Баланс'), html: (this.balanceHtml(14, R) + this.loopsHtml()) || `<div class="note">${$t('нет')}</div>` },
+    ])}`;
   }
 
   groupView(n, s) {
@@ -148,10 +175,11 @@ export class PropsPanel {
     return `<table class="kv"><tr><th>${$t("Загрузка")}</th><td>${s?.util != null ? num(s.util * 100, 1) + '%' : '—'}</td></tr>
       <tr><th>${$t("Внутри")}</th><td>${inner.length} ${$t("узл. (")}${inner.filter(x => x.type === 'machine').length} ${$t("машин)")}${s?.innerProblems ? `<br><span class="warnc">${$t("проблем внутри:")} ${s.innerProblems}</span>` : ''}</td></tr>
       <tr><th>${$t("Мощность")}</th><td>${num(s?.powerFull || 0)} ${$t("EU/t полная /")} ${num(s?.powerAvg || 0)} ${$t("факт.")}</td></tr></table>
+      <h4 data-k="g-ports">${$t("Порты")}</h4>
       <table class="io"><tr><th></th><th>${$t("Порт")}</th><th>${$t("Полная мощн.")}</th><th>${$t("Сейчас")}</th></tr>${rows}</table>
       <div class="note small">${$t("«Полная мощность» — сколько блок возьмёт и даст, если входы не ограничены. «Сейчас» — внутренняя схема, решённая с тем, что реально приходит на входы.")}</div>
       ${s?.innerR ? this.totalsHtml(summarize(n.inner, s.innerR), $t('Внутри блока'), { flows: false }) : ''}
-      <div class="btnrow"><button data-act="enter">${$t("⤵ Открыть блок")}</button><button data-act="ungroup">${$t("Разгруппировать")}</button></div>`;
+      <div class="btnrow foot"><button data-act="enter">${$t("⤵ Открыть блок")}</button><button data-act="ungroup">${$t("Разгруппировать")}</button></div>`;
   }
 
   summary() {
@@ -159,31 +187,48 @@ export class PropsPanel {
     const act = status?.active;
     const inst = status?.install;
     const probs = R?.problems || [];
-    this.el.innerHTML = `<h3>${$t("Схема")}</h3>
-      <label>${$t("Название")} <input data-f="name" value="${esc(p.name)}"></label>
+    const T = summarize(p, R);
+    const vs = this.app.root.versions || [];
+    const overview = `<label>${$t("Название")} <input data-f="name" value="${esc(p.name)}"></label>
       ${p.demo ? `<div class="note demo"><b>${$t("ДЕМО-СХЕМА.")}</b> ${esc(p.demoNote)}</div>` : ''}
-      <table class="kv">
-        <tr><th>${$t("Узлов / связей")}</th><td>${p.nodes.length} / ${p.edges.length}</td></tr>
-        <tr><th>${$t("Рецепты схемы")}</th><td>${Object.keys(p.recipes).length} ${$t("снимков")}${p.dataset ? `<br><small>${$t("создана на")} ${esc(p.dataset.label)}</small>` : ''}</td></tr>
-      </table>
-      <div class="btnrow"><button data-act="arrange" title="${$t("Расставить узлы по потоку слева направо (L). Отменить: Ctrl+Z")}">${$t("⇶ Упорядочить схему")}</button><button data-act="png" title="${$t("Сохранить картинку схемы")}">${$t("🖼 PNG")}</button></div>
-      <h4 id="problems">${$t("Проблемы (")}${probs.length})</h4>
-      ${this.problemsHtml(probs, $t("Дефицитов и неподключённых портов нет."))}
-      ${this.totalsHtml(summarize(p, R), $t('Итоги линии'))}
+      ${this.statsHtml(T, probs)}
+      ${this.targetSummary()}
+      <div class="btnrow"><button data-act="arrange" title="${$t("Расставить узлы по потоку слева направо (L). Отменить: Ctrl+Z")}">${$t("⇶ Упорядочить схему")}</button><button data-act="png" title="${$t("Сохранить картинку схемы")}">${$t("🖼 PNG")}</button><button data-act="machines">${$t("☰ Отчёт")}</button></div>
+      ${this.totalsHtml(T, $t('Итоги линии'))}
       <h4>${$t("Уровень машин")}</h4>
       <div class="grid2"><label>${$t("По умолчанию для новых")} <select data-f="defaultTier"><option value="">${$t("уровень рецепта")}</option>${TIERS.map((t, i) => `<option value="${i}" ${p.defaultTier === i ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
         <label>&nbsp;<button data-act="applytier" ${p.defaultTier == null ? 'disabled' : ''}>${$t("Применить ко всем машинам")}</button></label></div>
-      ${this.energySummary()}
-      ${this.balanceHtml()}
-      ${this.loopsHtml()}
-      ${this.versionsHtml()}
       <h4>${$t("Данные")}</h4>
       <table class="kv">
+        <tr><th>${$t("Узлов / связей")}</th><td>${p.nodes.length} / ${p.edges.length}</td></tr>
+        <tr><th>${$t("Рецепты схемы")}</th><td>${Object.keys(p.recipes).length} ${$t("снимков")}${p.dataset ? `<br><small>${$t("создана на")} ${esc(p.dataset.label)}</small>` : ''}</td></tr>
         <tr><th>${$t("Рецепты")}</th><td>${esc(act?.label || '—')} ${act?.verified ? `<span class="badge ok">${$t("проверено")}</span>` : `<span class="badge warn">${$t("не проверено")}</span>`}<br><small>${$t("формат")} ${act?.format ?? '—'} · ${esc(act?.sourceBranch || act?.origin || '')}</small></td></tr>
         <tr><th>${$t("Сборка")}</th><td>${inst?.found ? `${esc(inst.packVersion || '?')} <small>(${esc(inst.packVersionSource || '')})</small>` : `<small>${$t("не найдена")}</small>`}</td></tr>
       </table>
       ${inst?.found && act && inst.packVersion !== act.packVersion ? `<div class="note warn">${$t("Рецепты")} ${esc(act.packVersion)} ${$t("≠ сборка")} ${esc(inst.packVersion)}${$t(". Значения могут отличаться; правки вносите в «Свои рецепты».")}</div>` : ''}
-      <div class="hint">${$t("Подсказки: колесо — масштаб, перетаскивание фона — панорама, перетащите от порта к порту — связь, Delete — удалить, Ctrl+Z / Ctrl+Y — отмена/повтор, F — вписать.")}<br>${$t("От порта в пустое место — найти рецепт. R / U над иконкой — рецепты / применение. Ctrl+C / Ctrl+V — копировать узлы (и в другую схему), Ctrl+D — дублировать, L — упорядочить.")}</div>`;
+      <h4 data-k="hints">${$t("Подсказки")}</h4>
+      <ul class="hints"><li>${$t("Подсказки: колесо — масштаб, перетаскивание фона — панорама, перетащите от порта к порту — связь, Delete — удалить, Ctrl+Z / Ctrl+Y — отмена/повтор, F — вписать.")}</li><li>${$t("От порта в пустое место — найти рецепт. R / U над иконкой — рецепты / применение. Ctrl+C / Ctrl+V — копировать узлы (и в другую схему), Ctrl+D — дублировать, L — упорядочить.")}</li></ul>`;
+    this.el.innerHTML = `<h3><span class="hico">⚙</span>${$t("Схема")}</h3>${tabsHtml('summary', [
+      { id: 'overview', label: $t('Обзор'), html: overview },
+      { id: 'problems', label: $t('Проблемы'), badge: probs.length, badgeKind: probs.length ? 'bad' : 'ok', html: `<h4 id="problems">${$t("Проблемы (")}${probs.length})</h4>${this.problemsHtml(probs, $t("Дефицитов и неподключённых портов нет."))}` },
+      { id: 'balance', label: $t('Баланс'), html: (this.balanceHtml() + this.loopsHtml()) || `<div class="note">${$t('Схема пуста — добавьте рецепт из каталога слева.')}</div>` },
+      { id: 'energy', label: '⚡', title: $t('Энергия'), html: this.energySummary() },
+      { id: 'versions', label: $t('Версии'), badge: vs.length || '', html: this.versionsHtml() },
+    ])}`;
+  }
+
+  targetSummary() {
+    const T = this.app.root.target;
+    if (!T || this.app.path.length) return '';
+    const p = this.app.root, R = this.app.rootResults;
+    const n = findNode(p, T.node);
+    const r = n && recipeOf(p, n);
+    const e = r?.outputs?.[+T.port.slice(1)];
+    if (!e) return '';
+    const cur = R?.nodes[n.id]?.outputs?.[T.port]?.actual || 0;
+    const ok = cur >= T.rate * (1 - 1e-6);
+    return `<div class="target ${ok ? 'ok' : 'short'}"><span>🎯 ${iconHtml(e, this.app.iconDataset(r), 'small')} <b>${esc(nm(e))}</b>: ${rate(cur, e.kind)} ${$t('из')} ${rate(T.rate, e.kind)}</span>
+      <span><a href="#" data-sel-node="${n.id}">${$t('к машине')}</a> <button data-act="plan-saved">${$t('План')}</button></span></div>`;
   }
 
   versionsHtml() {
@@ -197,7 +242,8 @@ export class PropsPanel {
   nodeView(n) {
     const { project: p, results: R } = this.app;
     const s = R?.nodes[n.id];
-    let h = `<h3>${esc(NODE_TYPES[n.type])}</h3>`;
+    const ico = { machine: '⚒', generator: '⚡', source: '⭲', sink: '▣', splitter: '⑂', merger: '⋈', group: '▦', gin: '⇥', gout: '⇤' }[n.type] || '•';
+    let h = `<h3 class="t-${n.type}"><span class="hico">${ico}</span>${esc(NODE_TYPES[n.type])}</h3>`;
     h += `<label>${$t("Подпись")} <input data-f="label" value="${esc(lbl(n.label) || '')}" placeholder="${n.type === 'machine' ? esc(mname(recipeOf(p, n)?.machine)) : ''}"></label>`;
     if (n.type === 'machine') h += this.machineView(n, s);
     if (n.type === 'generator') h += this.generatorView(n, s);
@@ -228,7 +274,7 @@ export class PropsPanel {
       h += `<table class="kv">${list.map(x => `<tr><th>${iconHtml(x.res, this.app.iconDataset(), 'small')} ${esc(nm(x.res))}</th><td>${rate(x.rate, x.res?.kind)}</td></tr>`).join('') || `<tr><td>${$t("пусто")}</td></tr>`}</table>
         <div class="note">${$t("Склад принимает любые ресурсы без ограничения (бесконечная потребность), поэтому в «авто»-распределении получает излишек.")}</div>`;
     }
-    h += `<div class="btnrow"><button data-act="dup">${$t("Дублировать")}</button><button data-act="delnode" class="danger">${$t("Удалить узел")}</button></div>`;
+    h += `<div class="btnrow foot"><button data-act="dup">${$t("Дублировать")}</button><button data-act="delnode" class="danger">${$t("Удалить узел")}</button></div>`;
     this.el.innerHTML = h;
   }
 
@@ -236,11 +282,49 @@ export class PropsPanel {
     const rt = recipeTier(r);
     const cur = mp?.tier ?? rt;
     let o = '';
-    for (let t = rt; t < TIERS.length; t++) {
+    for (let t = n.multi ? 0 : rt; t < TIERS.length; t++) {
       const x = machineParams({ ...n, tier: t, cycleOverride: undefined }, r);
-      o += `<option value="${t}" ${t === cur ? 'selected' : ''}>${TIERS[t]}${x.ticks != null ? ` — ${num(x.ticks / 20, 2)} ${$t("с,")} ${x.eut != null ? num(x.eut) + ' EU/t' : '— EU/t'}` : ''}${t > rt && x.ocs < t - rt ? $t(' (упор в 1 тик)') : ''}</option>`;
+      const info = x.multi?.blocked ? ' — ' + $t({ heat: 'мало нагрева', power: 'не хватает EU', voltage: 'низкое напряжение' }[x.multi.blocked])
+        : x.ticks != null ? ` — ${num(x.ticks / 20, 2)} ${$t("с,")} ${x.eut != null ? num(x.eut) + ' EU/t' : '— EU/t'}${x.parallel > 1 ? ' ×' + x.parallel : ''}` : '';
+      o += `<option value="${t}" ${t === cur ? 'selected' : ''}>${TIERS[t]}${info}${!n.multi && t > rt && x.ticks === 1 && (r.gt?.durationTicks || 0) / 2 ** x.ocs < 1 ? $t(' (упор в 1 тик)') : ''}</option>`;
     }
     return o;
+  }
+
+  /** Single block or multiblock, energy hatches, parallels, bonuses and coil heat (overclock.js). */
+  multiHtml(n, r, mp) {
+    const mbs = r.machine?.multiblocks || [];
+    if (!mbs.length || !r.gt) return '';
+    const sbs = r.machine?.singleblocks || [];
+    const ebf = n.multi === EBF_ID;
+    const rh = recipeHeat(r);
+    const M = mp?.multi;
+    let h = `<label>${$t('Машина')} <select data-f="multi">
+      ${sbs.length || !n.multi ? `<option value="">${$t('одноблочная')}</option>` : ''}
+      ${mbs.map(c => `<option value="${esc(c.id)}" ${n.multi === c.id ? 'selected' : ''}>${esc(nm(c))}</option>`).join('')}</select></label>`;
+    if (!n.multi) return h;
+    h += `<div class="grid2">
+      <label title="${esc(H.hatches())}">${$t('Энергоразъёмов')} <input type="number" min="1" step="1" data-f="hatches" value="${n.hatches || 1}"></label>
+      <label title="${esc(H.parallel())}">${$t('Параллелей')} <input type="number" min="1" step="1" data-f="parallel" value="${ebf ? 1 : n.parallel || 1}" ${ebf ? 'disabled' : ''}></label>
+      <label>${$t('Быстрее на, %')} <input type="number" min="0" step="any" data-f="speedPct" value="${ebf ? 0 : n.speedPct || 0}" ${ebf ? 'disabled' : ''}></label>
+      <label>${$t('EU/t от обычного, %')} <input type="number" min="1" step="any" data-f="euPct" value="${ebf ? 100 : n.euPct || 100}" ${ebf ? 'disabled' : ''}></label>
+    </div>`;
+    if (rh != null) {
+      h += ebf
+        ? `<label>${$t('Катушки')} <select data-f="coil"><option value="">—</option>${COILS.map(c => `<option value="${c.i}" ${+n.coil === c.i && n.coil != null ? 'selected' : ''}>${esc(nm(c.item))} — ${c.heat} K</option>`).join('')}</select></label>`
+        : `<label title="${esc(H.heat())}">${$t('Нагрев машины, K')} <input type="number" min="0" step="1" data-f="heat" value="${n.heat || ''}" placeholder="${$t('из подсказки или сканера')}"></label>`;
+    }
+    h += `<div class="note small">${ebf ? $t('Электрическая доменная печь: параллелей 1, без бонусов скорости и EU (так в исходниках GT). Нагрев = катушки + 100 K за каждый уровень напряжения выше MV (сумма напряжений разъёмов).') + ' '
+      : $t('Параллели и бонусы возьмите из подсказки этого мультиблока в игре — у каждого они свои, планировщик их не угадывает.') + ' '}${$t('Разъёмы — обычные энергоразъёмы (2 A); один разъём даёт разгон как 1 A, два и больше — сумму ампер. Многоамперные и лазерные разъёмы не учитываются.')}</div>`;
+    if (M) {
+      const rows = [];
+      if (M.recipeHeat != null) rows.push([$t('Нагрев'), M.machineHeat != null ? `${num(M.machineHeat)} K ${$t('из нужных')} ${num(M.recipeHeat)} K${M.heatOcs ? ` · ${$t('идеальных разгонов от нагрева')}: ${M.heatOcs}` : ''}${M.discount < 1 ? ` · EU ×${num(M.discount, 3)}` : ''}` : `<span class="warnc">${$t('не задан')}</span>`]);
+      rows.push([$t('Энергия разъёмов'), `${num(M.avail)} EU/t (${M.A} A × ${num(TIER_V[mp.tier])} V)`]);
+      if (!M.blocked) rows.push([$t('Параллелей в работе'), `${M.parallel}${M.parallel > (ebf ? 1 : n.parallel || 1) ? ' ' + $t('(сверх 1 тика разгон даёт параллели)') : ''}`]);
+      else rows.push([$t('Состояние'), `<b class="bad">${$t({ heat: 'не хватает нагрева', power: 'не хватает энергии разъёмов', voltage: 'напряжение разъёмов слишком низкое' }[M.blocked])}</b>`]);
+      h += `<table class="kv">${rows.map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('')}</table>`;
+    }
+    return h;
   }
 
   /** Whole-line balance per resource (total demand at full capacity vs. what is made / brought in). */
@@ -368,7 +452,7 @@ export class PropsPanel {
     const E = this.needEnergy();
     const s = R?.edges[e.id];
     const g = findNode(p, e.from.node);
-    let h = `<h3>${$t("Связь питания ⚡")}</h3><div class="route">${this.link(e.from.node)} → ${this.link(e.to.node)}</div>`;
+    let h = `<h3 class="t-energy"><span class="hico">⚡</span>${$t("Связь питания ⚡")}</h3><div class="route">${this.link(e.from.node)} → ${this.link(e.to.node)}</div>`;
     if (!energyOn(p)) h += `<div class="note warn">${$t("Учёт энергии выключен — связь не участвует в расчёте.")}</div>`;
     if (!E) return this.el.innerHTML = h + `<div class="note">${$t("Загрузка списка кабелей…")}</div>`;
     const V = +g?.voltage || 0;
@@ -438,17 +522,20 @@ export class PropsPanel {
       <small title="${$t("Стабильный ID")}">${esc(r.id)}</small><br>
       <small>${$t("снимок:")} ${esc(snap.datasetLabel || snap.dataset || r.dataset)}, ${esc((snap.takenAt || '').slice(0, 10))}</small>
       ${r.source ? `<br><small>${$t("источник:")} ${esc(r.source.type === 'copy' ? `${$t("копия")} ${r.source.recipeId} ${$t("из")} ${r.source.dataset}` : r.source.type)}${r.targetPackVersion ? $t(' · для ') + esc(r.targetPackVersion) : ''}</small>` : ''}</div>
+      <h4 data-k="m-setup">${$t("Настройка")}</h4>
       <div class="grid2">
         <label>${$t("Машин")} <input type="number" min="0" step="1" data-f="count" value="${n.count}"></label>
-        <label>${$t("Уровень машины")} <select data-f="tier">${this.tierOptions(n, r, mp)}</select></label>
+        <label>${n.multi ? $t('Уровень разъёмов') : $t("Уровень машины")} <select data-f="tier">${this.tierOptions(n, r, mp)}</select></label>
       </div>
-      <label class="chk"><input type="checkbox" data-f="perfectOc" ${n.perfectOc ? 'checked' : ''}> ${$t("идеальный разгон (÷4 длительность за уровень)")}</label>
-      <div class="note small">${$t("Разгон GT: каждый уровень выше уровня рецепта (")}${esc(TIERS[recipeTier(r)])}${$t(") — длительность ÷2, EU/t ×4, не короче 1 тика. Идеальный разгон есть только у некоторых мультиблоков. Для бонусов катушек, параллелей и т.п. задайте циклы/мин вручную.")}</div>
+      ${this.multiHtml(n, r, mp)}
+      <label class="chk"><input type="checkbox" data-f="perfectOc" ${n.perfectOc ? 'checked' : ''} ${n.multi === EBF_ID ? 'disabled' : ''}> ${$t("идеальный разгон (÷4 длительность за уровень)")}</label>
+      <div class="note small">${n.multi ? $t('Разгон мультиблока по правилам GT 5.09.51: по мощности разъёмов (EU/t × параллели), длительность ÷2 (÷4 идеальный), EU/t ×4; разгон сверх 1 тика превращается в параллели.') : $t("Разгон GT: каждый уровень выше уровня рецепта (") + esc(TIERS[recipeTier(r)]) + $t(") — длительность ÷2, EU/t ×4, не короче 1 тика. Идеальный разгон есть только у некоторых мультиблоков. Для мультиблоков выберите его в поле «Машина».")}</div>
       <label>${$t("Циклов/мин на машину (вручную)")} <input type="number" min="0" step="any" data-f="cycleOverride" value="${n.cycleOverride || ''}" placeholder="${mp?.ticks ? num(1200 / mp.ticks) + $t(' (из рецепта)') : $t('нет длительности в рецепте')}"></label>
+      <h4 data-k="m-work">${$t("Работа")}</h4>
       <table class="kv">
         <tr><th>${$t("Длительность")}</th><td>${gt?.durationTicks != null ? `${gt.durationTicks} t (${seconds(gt.durationTicks)})${mp?.ocs ? ` → ${mp.ticks} t (${seconds(mp.ticks)})` : ''}` : '—'}</td></tr>
         <tr><th>EU/t ${help(H.eut() + ' ' + H.oc())}</th><td>${gt?.eut != null ? num(gt.eut) + (mp?.ocs ? ` → ${num(mp.eut)}` : '') + (gt.voltage != null ? ` <small>(${num(gt.voltage)} V × ${gt.amperage} A)</small>` : '') : '—'}</td></tr>
-        <tr><th>${$t("Уровень")}</th><td>${$t("рецепт")} ${esc(gt?.tierName || TIERS[recipeTier(r)])} ${$t("· машина")} <b>${esc(TIERS[mp?.tier ?? recipeTier(r)])}</b>${mp?.ocs ? ` ${$t("(разгонов:")} ${mp.ocs})` : ''}</td></tr>
+        <tr><th>${$t("Уровень")}</th><td>${$t("рецепт")} ${esc(gt?.tierName || TIERS[recipeTier(r)])} ${n.multi ? $t('· разъёмы') : $t("· машина")} <b>${esc(TIERS[mp?.tier ?? recipeTier(r)])}</b>${mp?.ocs ? ` ${$t("(разгонов:")} ${mp.ocs})` : ''}${mp?.parallel > 1 ? ` · ${$t('параллелей')} ${mp.parallel}` : ''}</td></tr>
         ${s?.loop ? `<tr><th>${$t("Цикл")}</th><td><span class="badge loop">${$t("↻ цикл")} ${s.loop}</span></td></tr>` : ''}
         ${gt?.specialValue ? `<tr><th>specialValue</th><td>${num(gt.specialValue)}</td></tr>` : ''}
         ${(gt?.metadata || []).map(m => `<tr><th>${esc(m.key)}</th><td>${num(m.value)}</td></tr>`).join('')}
@@ -464,6 +551,7 @@ export class PropsPanel {
       h += `<label>${$t("Словарь руд")} <code>${esc(e.id)}</code> ${$t("— вариант")}
         <select data-ore="${i}">${(e.variants || []).map(v => `<option value="${esc(v.id)}" ${v.id === cur ? 'selected' : ''}>${esc(nm(v))} — ${esc(v.id)}</option>`).join('')}</select></label>`;
     });
+    h += this.targetHtml(n, r, s, ds);
     h += `<h4>${$t("Входы")}</h4><table class="io"><tr><th></th><th>${$t("за цикл")}</th><th>${$t("нужно")}</th><th>${$t("подано")}</th></tr>`;
     r.inputs.forEach((e, i) => {
       const x = s?.inputs['i' + i];
@@ -479,10 +567,45 @@ export class PropsPanel {
         <td>${x ? rate(x.max, e.kind) : '—'}</td><td>${x ? rate(x.actual, e.kind) + (!x.connected ? `<br><small>${$t("не подключён")}</small>` : x.unrouted > 0 ? `<br><small>${$t("не распр.")} ${rate(x.unrouted, e.kind)}</small>` : '') : '—'}</td></tr>`;
     });
     h += `</table>${r.outputs.some(e => e.probability < 1) ? `<div class="note small">${$t("Для выходов с шансом показано ожидаемое среднее.")}</div>` : ''}
+      ${this.armHtml(r, n, s, ds)}
+      <h4 data-k="m-recipe">${$t("Рецепт")}</h4>
       ${crafters.length ? `<details><summary>${$t("Машины для этой карты (")}${crafters.length})</summary><div class="crafters">${crafters.map(c => `<div>${iconHtml(c, ds, 'small')} ${esc(nm(c))}</div>`).join('')}</div></details>` : ''}
       <div class="btnrow"><button data-act="compare">${$t("Сравнить с каталогом")}</button><button data-act="tocustom">${$t("Копировать в свои")}</button></div>
       <div class="cmp"></div>`;
     return h;
+  }
+
+  /** "Make X per minute here" → plan the whole line (target.js). Top level only. */
+  targetHtml(n, r, s, ds) {
+    if (this.app.path.length || !r.outputs.length || !s?.params?.perMachine) return '';
+    const T = this.app.root.target?.node === n.id ? this.app.root.target : null;
+    const port = T?.port || 'o0';
+    const i = +port.slice(1);
+    const cur = s?.outputs?.[port]?.actual || 0;
+    const v = T ? T.rate : cur;
+    return `<h4 data-k="m-target">🎯 ${$t('Цель выпуска')} ${help(H.target())}</h4>
+      <div class="grid2">
+        <label>${$t('Продукт')} <select data-tg="port">${r.outputs.map((e, k) => `<option value="o${k}" ${port === 'o' + k ? 'selected' : ''}>${esc(nm(e))}</option>`).join('')}</select></label>
+        <label>${$t('Нужно')} <span class="inl"><input type="number" min="0" step="any" data-tg="rate" value="${+rateVal(v).toFixed(4)}"> ${r.outputs[i]?.kind === 'fluid' ? 'L' : $t('шт')}${unitLabel()}</span></label>
+      </div>
+      <div class="btnrow"><button data-act="plan" class="primary">${$t('Рассчитать линию под цель')}</button>${T ? `<button data-act="untarget">${$t('Снять цель')}</button>` : ''}</div>
+      ${T ? `<div class="note small">${$t('Сейчас')}: <b>${rate(cur, r.outputs[i]?.kind)}</b> ${$t('из')} ${rate(T.rate, r.outputs[i]?.kind)}</div>` : ''}`;
+  }
+
+  /** Robot arm slot numbers of the machine block at this node's tier (see slots.js). */
+  armHtml(r, n, s, ds) {
+    const A = armSlots(r, n, s?.params);
+    if (!A) return '';
+    const head = A.block
+      ? `<div class="resline">${A.block.item ? iconHtml(A.block.item, ds, 'small') + ' ' : ''}<b>${esc(nm(A.block.item) || A.block.name)}</b> · ${esc(A.tier)}<br><small>${$t('входных слотов')}: ${A.block.inputs} · ${$t('выходных')}: ${A.block.outputs}</small></div>`
+      : `<div class="note small warn">${A.reason === 'notier' ? $t('Для уровня') + ' ' + esc(A.tier) + ' ' + $t('нет одноблочной машины с этим рецептом — номера выходов неизвестны.') : $t('На этом уровне несколько машин с разным числом слотов — номера выходов неизвестны.')}</div>`;
+    const row = (e, v, dir, note) => `<tr><td>${iconHtml(e, ds, 'small')}</td><td class="bname">${esc(nm(e))}${note ? `<br><small>${note}</small>` : ''}</td><td>${dir}</td><td class="num">${v != null ? `<span class="aslot">${v}</span>` : '—'}</td></tr>`;
+    const rows = [
+      ...r.inputs.map((e, i) => e.kind === 'fluid' ? '' : i === A.circuit ? row(e, null, $t('схема'), $t('ставится в окне машины, роборука её не вставляет')) : row(e, A.inputs[i], $t('вход'))),
+      ...r.outputs.map((e, i) => e.kind === 'fluid' ? '' : row(e, A.outputs[i], $t('выход'))),
+    ].join('');
+    return `<h4 data-k="m-arm">${$t('Роборука: номера слотов')} ${help(H.arm())}</h4>${head}<table class="io bal">${rows}</table>
+      <div class="note small">${$t('Входы GT принимают предмет в любой входной слот, номера входов — раскладка по порядку рецепта. Выход рецепта попадает в свой слот, а если он занят — в следующий. Жидкости роборука не переносит.')}</div>`;
   }
 
   /** "Set to N machines" suggestions: to cover the demand downstream, or to match the supply. */
@@ -513,7 +636,7 @@ export class PropsPanel {
     const k = res?.kind;
     const siblings = p.edges.filter(x => x.from.node === e.from.node && x.from.port === e.from.port);
     const fixedSum = siblings.reduce((a, x) => a + (x.share != null && x.share !== '' ? +x.share : 0), 0);
-    let h = `<h3>${$t("Связь")}</h3>
+    let h = `<h3><span class="hico">⟶</span>${$t("Связь")}</h3>
       <div class="resline">${iconHtml(res, this.app.iconDataset(), 'small')} <b>${esc(nm(res))}</b><br><small>${esc(res?.id)}</small></div>
       <div class="route">${this.link(e.from.node)} → ${this.link(e.to.node)}</div>
       <table class="kv big">
@@ -547,6 +670,7 @@ export class PropsPanel {
   // ---------- events ----------
   onChange(ev) {
     const t = ev.target;
+    if (t.dataset.tg != null) return; // target fields are read when the plan is asked for
     const app = this.app, p = app.project, sel = app.selection;
     const f = t.dataset.f;
     if (!sel && f === 'blockname') {
@@ -579,6 +703,18 @@ export class PropsPanel {
         if (f === 'count') n.count = Math.max(0, Math.floor(+t.value || 0));
         if (f === 'tier') { n.tier = +t.value; delete n.oc; }
         if (f === 'perfectOc') n.perfectOc = t.checked || undefined;
+        if (f === 'multi') {
+          n.multi = t.value || undefined;
+          if (!n.multi) for (const k of ['hatches', 'parallel', 'speedPct', 'euPct', 'coil', 'heat']) delete n[k];
+          else if (n.multi === EBF_ID) delete n.perfectOc;
+        }
+        const posInt = v => Math.max(1, Math.floor(+v || 1));
+        if (f === 'hatches') n.hatches = posInt(t.value);
+        if (f === 'parallel') n.parallel = posInt(t.value);
+        if (f === 'speedPct') n.speedPct = Math.max(0, +t.value || 0) || undefined;
+        if (f === 'euPct') n.euPct = +t.value > 0 ? +t.value : undefined;
+        if (f === 'coil') n.coil = t.value === '' ? undefined : +t.value;
+        if (f === 'heat') n.heat = +t.value > 0 ? Math.floor(+t.value) : undefined;
         if (f === 'cycleOverride') n.cycleOverride = t.value === '' ? undefined : Math.max(0, +t.value);
         if (f === 'rate') n.rate = Math.max(0, fromUnit(+t.value || 0));
       });
@@ -680,6 +816,14 @@ export class PropsPanel {
     if (act === 'addgout') app.addSimple('gout');
     if (act === 'applytier') app.applyDefaultTier();
     if (act === 'machines') app.machineListDialog();
+    if (act === 'plan') {
+      const port = this.el.querySelector('[data-tg=port]')?.value || 'o0';
+      const v = fromUnit(+this.el.querySelector('[data-tg=rate]')?.value || 0);
+      if (!(v > 0)) { app.toast($t('Укажите, сколько нужно (больше нуля)'), 'warn'); return; }
+      app.planDialog({ node: app.selection.id, port, rate: v });
+    }
+    if (act === 'plan-saved' && app.root.target) app.planDialog(app.root.target);
+    if (act === 'untarget') app.mutate(() => { delete app.root.target; });
     if (act === 'arrange') app.arrangeNodes();
     if (act === 'png') app.exportPng();
     if (act === 'addgen') app.addSimple('generator');

@@ -1,5 +1,6 @@
 // Canvas: renders nodes (NEI-style cards) and edges; pan, zoom, drag, connect.
 import { $t, lbl } from './i18n.js';
+import { armSlots } from './slots.js';
 import { esc, num, rate, slotHtml, iconHtml, seconds, TIERS, nm, mname, energySlotHtml } from './fmt.js';
 import { ports, recipeOf, checkConnect, node as findNode, resolveInput, energyOn, energyPorts, isEnergyRes } from './model.js';
 import { whyLimited, nodeLabel } from './fixes.js';
@@ -105,10 +106,12 @@ export class Canvas {
       if (!r) return `<div class="${cls.join(' ')}" data-id="${n.id}" style="${st}"><div class="nhead">${$t("Рецепт отсутствует")}</div></div>`;
       const rds = this.app.iconDataset(r);
       if (s && s.util != null && s.util < 1 - 1e-7) cls.push('throttled');
-      const crafter = r.machine?.defaultCrafter || r.machine?.singleblocks?.[0];
+      const crafter = (n.multi && r.machine?.multiblocks?.find(c => c.id === n.multi)) || r.machine?.defaultCrafter || r.machine?.singleblocks?.[0];
+      const arm = this.app.showArmSlots ? armSlots(r, n, s?.params) : null;
+      const aIn = i => armTag(arm?.inputs[i], arm, 'in'), aOut = i => armTag(arm?.outputs[i], arm, 'out');
       const ins = r.inputs.map((e, i) => {
         if (e.consumed === false) {
-          return `<div class="prow in nc"><div class="pspace"></div>${slotHtml(e, rds)}<div class="ptext"><small>${$t("не расходуется")}</small></div></div>`;
+          return `<div class="prow in nc"><div class="pspace"></div>${aIn(i)}${slotHtml(e, rds)}<div class="ptext"><small>${$t("не расходуется")}</small></div></div>`;
         }
         const pid = 'i' + i, x = s?.inputs[pid];
         const disp = resolveInput(n, e, i);
@@ -118,7 +121,7 @@ export class Canvas {
           rc = !x.connected ? 'unfed' : ok ? 'ok' : 'short';
           txt = `<b>${rate(x.need, e.kind)}</b><small>${rc === 'short' ? '⚠ ' : ''}${x.connected ? $t('есть ') + rate(x.supplied, e.kind) : $t('нет подачи')}</small>`;
         }
-        return `<div class="prow in ${rc}" title="${shortWhy(p, this.app.results, n.id, pid, x, e.kind)}"><div class="port in" data-node="${n.id}" data-port="${pid}"></div>${slotHtml(e, rds, { display: e.kind === 'oredict' ? { ...disp, kind: 'item' } : null })}<div class="ptext">${txt}</div></div>`;
+        return `<div class="prow in ${rc}" title="${shortWhy(p, this.app.results, n.id, pid, x, e.kind)}"><div class="port in" data-node="${n.id}" data-port="${pid}"></div>${aIn(i)}${slotHtml(e, rds, { display: e.kind === 'oredict' ? { ...disp, kind: 'item' } : null })}<div class="ptext">${txt}</div></div>`;
       }).join('');
       let eRow = '';
       if (energyPorts(p) && r.gt?.eut > 0) {
@@ -133,18 +136,18 @@ export class Canvas {
           rc = !x.connected ? 'unconn' : x.unrouted > 0 ? 'partial' : '';
           txt = `<b>${rate(x.actual, e.kind)}</b><small>${!x.connected ? $t('не подключён') : x.unrouted > 0 ? $t('не распр. ') + rate(x.unrouted, e.kind) : $t('макс ') + rate(x.max, e.kind)}</small>`;
         }
-        return `<div class="prow out ${rc}"><div class="ptext">${txt}</div>${slotHtml(e, rds)}<div class="port out" data-node="${n.id}" data-port="${pid}"></div></div>`;
+        return `<div class="prow out ${rc}"><div class="ptext">${txt}</div>${slotHtml(e, rds)}${aOut(i)}<div class="port out" data-node="${n.id}" data-port="${pid}"></div></div>`;
       }).join('');
       const gt = r.gt;
       const mp = s?.params;
-      const foot = gt ? `${mp?.ticks != null ? seconds(mp.ticks) : $t('— с')} · ${mp?.eut != null ? num(mp.eut) + ' EU/t' : '— EU/t'} ${$t("· рецепт")} ${TIERS[mp?.recipeTier ?? 0]}${mp?.ocs ? ` ${$t("· разгон ×")}${mp.ocs}${n.perfectOc ? $t(' (идеальный)') : ''}` : ''}`
+      const foot = gt ? `${mp?.ticks != null ? seconds(mp.ticks) : $t('— с')} · ${mp?.eut != null ? num(mp.eut) + ' EU/t' : '— EU/t'} ${$t("· рецепт")} ${TIERS[mp?.recipeTier ?? 0]}${mp?.ocs ? ` ${$t("· разгон ×")}${mp.ocs}${n.perfectOc ? $t(' (идеальный)') : ''}` : ''}${mp?.parallel > 1 ? ` · ${$t('параллелей')} ${mp.parallel}` : ''}${mp?.multi?.blocked ? ` · <b class="bad">${$t('не запускается')}</b>` : ''}`
         : (n.cycleOverride ? `${num(n.cycleOverride)} ${$t("цикл/мин (вручную)")}` : $t('нет данных о длительности'));
       const u = s?.util;
       const why = s?.limitedBy ? esc(whyLimited(p, this.app.results, n.id) || '') : '';
       const utilBar = u == null ? '' : `<div class="util ${u < 1 - 1e-7 ? 'low' : ''}" title="${why}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("загрузка")} ${num(u * 100, 1)}%${s.limitedBy ? $t(' · ограничено входом') : ''}</span></div>`;
       const badge = r.dataset === 'custom' ? `<span class="badge custom" title="${$t("Пользовательский рецепт")}">${$t("свой")}</span>` : '';
       return `<div class="${cls.join(' ')}" data-id="${n.id}" style="${st}">
-        <div class="nhead">${crafter ? iconHtml(crafter, rds, 'small') : ''}<span class="ntitle">${esc(lbl(n.label) || mname(r.machine))}</span>${s?.loop ? `<span class="nloop" title="${$t("Узел входит в цикл")} ${s.loop}">↻${s.loop}</span>` : ''}<span class="ntier" title="${$t("Уровень машины")}">${TIERS[mp?.tier ?? 0]}</span><span class="ncount">×${n.count}</span>${badge}</div>
+        <div class="nhead">${crafter ? iconHtml(crafter, rds, 'small') : ''}<span class="ntitle">${esc(lbl(n.label) || mname(r.machine))}</span>${s?.loop ? `<span class="nloop" title="${$t("Узел входит в цикл")} ${s.loop}">↻${s.loop}</span>` : ''}<span class="ntier" title="${n.multi ? $t('Уровень разъёмов') : $t("Уровень машины")}">${n.multi ? '▦ ' : ''}${TIERS[mp?.tier ?? 0]}</span><span class="ncount">×${n.count}</span>${badge}</div>
         <div class="nbody"><div class="ncol">${eRow}${ins || (eRow ? '' : `<div class="empty">${$t("нет входов")}</div>`)}</div><div class="narrow">➜</div><div class="ncol">${outs}</div></div>
         <div class="nfoot">${foot}</div>${utilBar}</div>`;
     }
@@ -217,13 +220,15 @@ export class Canvas {
     return '';
   }
 
+  /** Small robot-arm slot number next to a slot (see slots.js). */
   /** Big one-glance summary shown instead of the card details when zoomed out. */
   nsumHtml(p, n, s, bad) {
     const u = s?.util;
     const st = bad ? 'bad' : u != null && u < 1 - 1e-7 ? 'warn' : 'ok';
     const cnt = n.type === 'machine' || n.type === 'generator' ? ` ×${n.count ?? 1}` : '';
     const load = u != null ? `${num(u * 100, 0)}%` : n.type === 'source' ? rate(n.rate, n.resource?.kind) : '';
-    return `<div class="nsum ${st}"><b>${esc(nodeLabel(p, n.id))}${cnt}</b>${load ? `<span>${load}${bad ? ' ⚠' : ''}</span>` : bad ? '<span>⚠</span>' : ''}</div>`;
+    const name = esc(nodeLabel(p, n.id));
+    return `<div class="nsum ${st}" title="${name}${cnt}"><div class="nsi"><b>${name}${cnt}</b>${load ? `<span>${load}${bad ? ' ⚠' : ''}</span>` : bad ? '<span>⚠</span>' : ''}</div></div>`;
   }
 
   groupHtml(p, n, s, cls, st, ds) {
@@ -527,4 +532,13 @@ function mid(a, b) {
   // cubic bezier at t=0.5
   const p1 = { x: a.x + dx, y: a.y }, p2 = { x: b.x - dx, y: b.y };
   return { x: 0.125 * a.x + 0.375 * p1.x + 0.375 * p2.x + 0.125 * b.x, y: 0.125 * a.y + 0.375 * p1.y + 0.375 * p2.y + 0.125 * b.y };
+}
+
+/** Small robot-arm slot number shown next to an item slot of a GT single-block machine. */
+function armTag(v, arm, dir) {
+  if (v == null) return '';
+  const t = dir === 'in'
+    ? $t('Роборука: входной слот') + ' ' + v + '. ' + $t('Входы GT принимают предмет в любой входной слот; номер — раскладка по порядку рецепта.')
+    : $t('Роборука: выходной слот') + ' ' + v + (arm?.block ? ` (${arm.block.name}, ${$t('входных слотов')}: ${arm.block.inputs})` : '') + '. ' + $t('Если слот занят, предмет попадает в следующий выходной слот.');
+  return `<span class="aslot ${dir}" title="${esc(t)}">${v}</span>`;
 }

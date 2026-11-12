@@ -1,7 +1,10 @@
 // Solver/model unit tests. Run by opening /tests.html (results also in window.testResults).
 // Fixtures are SYNTHETIC test recipes (ids start with "test:"), not catalog data.
 import * as M from './model.js';
-import { solve } from './solver.js';
+import { solve, EBF_ID } from './solver.js';
+import { planForTarget } from './target.js';
+import { billOfMaterials } from './machines.js';
+import { multiOc, ebfHeat, gtTierOf } from './overclock.js';
 
 const R = (id, inputs, outputs, ticks, eut = 30) => ({
   id, dataset: 'test', machine: { name: 'Test ' + id }, inputs, outputs,
@@ -595,6 +598,105 @@ test('блок с генератором внутри отдаёт энерги�
   eq(r1.nodes[blk.id].output, 5, 'block gives 5 EU/t');
   const fin = Object.values(r1.nodes[blk.id].inputs).find(x => x.res.id === 'f:fuel');
   eq(fin.used, 1, 'burns 1 L/s');
+});
+
+// ---- GT 5.09.51 overclock rules (overclock.js); expected values worked out by hand from the GT source
+test('разгон одноблочной машины по GT: на 1 тике EU/t продолжает расти', () => {
+  const X = R('test:oc30', [it('i:a', 1)], [it('i:b', 1)], 100, 30);
+  const p = build([X]);
+  const uv = M.addNode(p, { type: 'machine', recipeId: 'test:oc30', tier: 7 });
+  const lv = M.addNode(p, { type: 'machine', recipeId: 'test:oc30', tier: 0 });
+  const r = solve(p);
+  eq(r.nodes[uv.id].params.ocs, 7, 'UV: 7 overclocks');
+  eq(r.nodes[uv.id].params.ticks, 1, '100 / 128 → 1 tick');
+  eq(r.nodes[uv.id].params.eut, 30 * 4 ** 7, 'EU/t ×4 per overclock');
+  eq(r.nodes[lv.id].params.ocs, 0, 'LV: none');
+});
+
+const alRecipe = id => {
+  const x = R(id, [it('i:al', 1)], [it('i:ingot', 1)], 1500, 480);
+  x.gt = { durationTicks: 1500, eut: 480, tier: 2, tierName: 'HV', metadata: [{ key: 'coil_heat', value: 2054 }] };
+  x.machine = { name: 'Blast Furnace', multiblocks: [{ id: EBF_ID, name: 'Electric Blast Furnace', kind: 'item' }], singleblocks: [] };
+  return x;
+};
+
+test('ЭДП: нагрев катушек, скидка EU и идеальный разгон от нагрева', () => {
+  eq(gtTierOf(512), 3, 'getTier(512) = HV'); eq(gtTierOf(256), 3, 'getTier(256) = HV'); eq(gtTierOf(128), 2, 'MV');
+  eq(ebfHeat(1, 2, 1), 2801, 'Kanthal at HV: 2701 + 100');
+  const p = build([alRecipe('test:al')]);
+  const hv = M.addNode(p, { type: 'machine', recipeId: 'test:al', multi: EBF_ID, tier: 2, coil: 1 });
+  const ev = M.addNode(p, { type: 'machine', recipeId: 'test:al', multi: EBF_ID, tier: 3, coil: 1 });
+  const hssg = M.addNode(p, { type: 'machine', recipeId: 'test:al', multi: EBF_ID, tier: 3, coil: 4 });
+  const mv2 = M.addNode(p, { type: 'machine', recipeId: 'test:al', multi: EBF_ID, tier: 1, hatches: 2, coil: 1 });
+  const cold = M.addNode(p, { type: 'machine', recipeId: 'test:al', multi: EBF_ID, tier: 2, coil: 0 });
+  const r = solve(p);
+  const P = id => r.nodes[id].params;
+  eq(P(hv.id).ticks, 1500, 'HV, 1 hatch: no overclock'); eq(P(hv.id).eut, 480, 'HV 480 EU/t');
+  eq(P(ev.id).ticks, 750, 'EV: 1 overclock'); eq(P(ev.id).eut, 1920, 'EV 1920 EU/t');
+  eq(P(hssg.id).multi.machineHeat, 5601, 'HSS-G at EV: 5401 + 200');
+  eq(P(hssg.id).multi.discount, 0.95 ** 3, '3 × 900 K above → EU ×0.95³');
+  eq(P(hssg.id).ticks, 375, 'heat overclock ÷4'); eq(P(hssg.id).eut, 1647, 'ceil(480 × 0.857375 × 4)');
+  eq(P(mv2.id).ticks, 1500, '2 MV hatches = 512 EU/t: runs, no overclock'); eq(P(mv2.id).multi.machineHeat, 2801, 'sum of hatch voltages = HV');
+  assert(P(cold.id).multi.blocked === 'heat' && P(cold.id).cycles === 0, 'Cupronickel too cold: does not run');
+  assert(r.problems.some(x => x.kind === 'multiblock' && x.node === cold.id), 'reported');
+});
+
+test('мультиблок: параллели и разгон сверх 1 тика', () => {
+  const a = multiOc(30, 100, { tier: 4, hatches: 2, parallel: 8 });
+  eq(a.parallel, 8, '8 parallels'); eq(a.ocs, 3, '240 EU/t on 32768: 3 OCs'); eq(a.ticks, 12, '100 / 8'); eq(a.eut, 15360, '240 × 64');
+  const b = multiOc(30, 2, { tier: 4, hatches: 2, parallel: 1 });
+  eq(b.ticks, 1, '1 tick'); eq(b.parallel, 16, 'overclocks past 1 tick become 16 parallels'); eq(b.eut, 30720, '30 × 4⁵');
+  const c = multiOc(30, 100, { tier: 0, hatches: 1, parallel: 4 });
+  eq(c.parallel, 1, 'one LV hatch (32 EU/t) fits only one 30 EU/t parallel');
+  assert(multiOc(600, 100, { tier: 0, hatches: 8 }).blocked === 'power', '16 A × 32 V < 600');
+  assert(multiOc(600, 100, { tier: 0, hatches: 16 }).blocked === 'voltage', 'recipe > 4 × hatch voltage');
+});
+
+test('план под цель: цепочка и источник', () => {
+  const GLASS = R('test:glass', [it('i:sio2', 3)], [it('i:glass', 1)], 100);
+  const p = build([ELEC, GLASS]);
+  const s = M.addNode(p, { type: 'source', resource: it('i:sand', 1), rate: per(10) });
+  const e = M.addNode(p, { type: 'machine', recipeId: 'test:elec', count: 1 });
+  const g = M.addNode(p, { type: 'machine', recipeId: 'test:glass', count: 1 });
+  const k = M.addNode(p, { type: 'sink' });
+  M.connect(p, { node: s.id, port: 'out' }, { node: e.id, port: 'i0' });
+  M.connect(p, { node: e.id, port: 'o0' }, { node: g.id, port: 'i0' });
+  M.connect(p, { node: g.id, port: 'o0' }, { node: k.id, port: 'in' });
+  const P = planForTarget(p, { node: g.id, port: 'o0', rate: 0.1 });
+  assert(P.converged, 'converged');
+  const row = id => P.rows.find(x => x.id === id);
+  eq(row(g.id).exact, 0.5, 'glass: 0.5 machines'); eq(row(g.id).count, 1, '→ 1');
+  eq(row(e.id).exact, 2.5, 'electrolyzer: 2.5'); eq(row(e.id).count, 3, '→ 3');
+  eq(P.sources[0].need, 0.8, 'sand 0.8/s');
+  eq(P.achieved, 0.1, 'target reached exactly');
+});
+
+test('план под цель: цикл с возвратом не раздувает машины', () => {
+  const X = R('test:mgloop', [it('i:a', 1), it('i:mg', 2)], [it('i:p', 1), it('i:mg', 1)], 20);
+  const p = build([X]);
+  const a = M.addNode(p, { type: 'source', resource: it('i:a', 1), rate: 0.1 });
+  const mg = M.addNode(p, { type: 'source', resource: it('i:mg', 1), rate: 0.1 });
+  const x = M.addNode(p, { type: 'machine', recipeId: 'test:mgloop', count: 1 });
+  M.connect(p, { node: a.id, port: 'out' }, { node: x.id, port: 'i0' });
+  const mix = M.addNode(p, { type: 'merger' });
+  M.connect(p, { node: mg.id, port: 'out' }, { node: mix.id, port: 'in' });
+  M.connect(p, { node: x.id, port: 'o1' }, { node: mix.id, port: 'in' });
+  assert(M.connect(p, { node: mix.id, port: 'out' }, { node: x.id, port: 'i1' }).ok, 'loop closed');
+  const P = planForTarget(p, { node: x.id, port: 'o0', rate: 2 });
+  eq(P.rows[0].exact, 2, '2 machines (1 cycle/s each)');
+  eq(P.sources.find(s => s.id === a.id).need, 2, 'A 2/s');
+  eq(P.sources.find(s => s.id === mg.id).need, 2, 'Mg makeup 2/s (4 used − 2 returned)');
+  eq(P.achieved, 2, 'reached');
+});
+
+test('список постройки: контроллер, разъёмы, катушки и отметки', () => {
+  const p = build([alRecipe('test:al2')]);
+  M.addNode(p, { type: 'machine', recipeId: 'test:al2', multi: EBF_ID, tier: 2, hatches: 2, coil: 1, count: 2 });
+  const B = billOfMaterials(p, solve(p), { ['mb|' + EBF_ID]: 1 });
+  const row = pre => B.rows.find(x => x.key.startsWith(pre));
+  eq(row('mb|').need, 2, '2 controllers'); eq(row('mb|').left, 1, '1 built, 1 left');
+  eq(row('eh|').need, 4, '2 hatches each');
+  eq(row('coil|').need, 32, '16 coils each');
 });
 
 export function run() {

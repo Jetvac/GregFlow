@@ -2,6 +2,9 @@
 import { $t, lbl } from './i18n.js';
 import { TIERS, nm, mname } from './fmt.js';
 import { recipeOf, energyOn } from './model.js';
+import { singleBlockAt } from './slots.js';
+import { EBF_ID } from './solver.js';
+import { COILS } from './overclock.js';
 
 const GT_TIERS = ['ULV', ...TIERS];
 const voltTier = v => { const i = [8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 8388608, 33554432, 134217728, 536870912].indexOf(+v); return i >= 0 ? GT_TIERS[i] : (v ? v + $t(' В') : '—'); };
@@ -62,6 +65,67 @@ export function machineList(root, rootR) {
     .sort((a, b) => a.name.localeCompare(b.name, 'ru') || a.tierIdx - b.tierIdx);
   const generators = [...gens.values()].map(g => ({ ...g, fuel: [...g.fuel].join(', ') })).sort((a, b) => a.name.localeCompare(b.name, 'ru'));
   return { machines, generators, cables: [...cables.values()].sort((a, b) => a.name.localeCompare(b.name, 'ru')), totals };
+}
+
+/**
+ * What to build: machine blocks by exact item and tier, multiblock controllers with their energy
+ * hatches (and EBF coils, 16 per furnace — GT structure), generators and cable. Only what the
+ * schematic states is listed: casings, buses and other parts of a multiblock are not, since the
+ * planner does not know the structure. `built` is the user's checklist { key: count }.
+ */
+export function billOfMaterials(root, rootR, built = {}) {
+  const rows = new Map();
+  const add = (key, o, n) => {
+    if (!(n > 0)) return;
+    if (!rows.has(key)) rows.set(key, { key, ...o, need: 0 });
+    rows.get(key).need += n;
+  };
+  const walk = (p, R) => {
+    for (const n of p.nodes) {
+      if (n.synthetic) continue;
+      const s = R?.nodes[n.id];
+      if (n.type === 'group') { walk(n.inner, s?.innerR); continue; }
+      const c = n.count ?? 1;
+      if (n.type === 'machine') {
+        const r = recipeOf(p, n);
+        const t = s?.params?.tier ?? 0;
+        if (n.multi) {
+          const ctl = r?.machine?.multiblocks?.find(x => x.id === n.multi);
+          add('mb|' + n.multi, { group: 'machines', item: ctl, name: ctl ? nm(ctl) : n.multi, tier: '' }, c);
+          add('eh|' + t, { group: 'parts', name: $t('Энергоразъём'), tier: TIERS[t] }, c * Math.max(1, n.hatches || 1));
+          if (n.multi === EBF_ID && COILS[n.coil]) {
+            const k = COILS[n.coil];
+            add('coil|' + k.i, { group: 'parts', item: k.item, name: nm(k.item), tier: k.heat + ' K' }, c * 16);
+          }
+        } else {
+          const item = singleBlockAt(r, t);
+          const map = r?.machine?.name || $t('Машина');
+          add('sb|' + (item?.id || map) + '|' + t, { group: 'machines', item, name: item ? nm(item) : mname(r?.machine) || map, tier: TIERS[t], approx: !item }, c);
+        }
+      }
+      if (n.type === 'generator' && energyOn(root)) {
+        add('gen|' + (n.gen?.id || lbl(n.label)) + '|' + (n.voltage ?? '') + '|' + (n.amps ?? ''), { group: 'energy', item: n.gen?.id ? n.gen : null, name: nm(n.gen) || lbl(n.label) || $t('Генератор'), tier: voltTier(n.voltage) }, c);
+      }
+    }
+    if (energyOn(root)) for (const e of p.edges) {
+      if (!e.energy || !e.cable || !(+e.length > 0)) continue;
+      add('cable|' + e.cable.id, { group: 'energy', item: e.cable, name: nm(e.cable), tier: e.cable.tier || voltTier(e.cable.voltage), unit: $t('блоков') }, +e.length);
+    }
+  };
+  walk(root, rootR);
+  const order = { machines: 0, parts: 1, energy: 2 };
+  const list = [...rows.values()].map(x => {
+    const b = Math.max(0, Math.floor(+built[x.key] || 0));
+    return { ...x, built: b, left: Math.max(0, x.need - b) };
+  }).sort((a, b) => order[a.group] - order[b.group] || a.name.localeCompare(b.name, 'ru') || String(a.tier).localeCompare(String(b.tier)));
+  const done = list.filter(x => x.left === 0).length;
+  return { rows: list, done, total: list.length };
+}
+
+export function bomText(B) {
+  const lines = [$t('Что построить\tУровень\tНужно\tПостроено\tОсталось')];
+  for (const x of B.rows) lines.push([x.name, x.tier, x.need + (x.unit ? ' ' + x.unit : ''), x.built, x.left].join('\t'));
+  return lines.join('\n');
 }
 
 /** Plain-text table (tab separated) for copying into notes / spreadsheets. */

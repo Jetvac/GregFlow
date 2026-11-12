@@ -1,0 +1,3545 @@
+{
+ "source": "https://github.com/GTNewHorizons/GT5-Unofficial",
+ "tag": "5.09.51.482",
+ "license": "LGPL-3.0 (GT5-Unofficial); only slot counts are taken",
+ "note": "Key: gt.blockmachines meta ID. Arm slot = inventory slot + 1; inputs start at inventory slot 5, outputs at 5 + inputs (MTEBasicMachine.OTHER_SLOT_COUNT = 5).",
+ "otherSlotCount": 5,
+ "skipped": 2,
+ "machines": {
+  "201": {
+   "name": "Basic Alloy Smelter",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "202": {
+   "name": "Advanced Alloy Smelter",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "203": {
+   "name": "Advanced Alloy Smelter II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "204": {
+   "name": "Advanced Alloy Smelter III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "205": {
+   "name": "Advanced Alloy Smelter IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "211": {
+   "name": "Basic Assembling Machine",
+   "tier": 1,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "212": {
+   "name": "Advanced Assembling Machine",
+   "tier": 2,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "213": {
+   "name": "Advanced Assembling Machine II",
+   "tier": 3,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "214": {
+   "name": "Advanced Assembling Machine III",
+   "tier": 4,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "215": {
+   "name": "Advanced Assembling Machine IV",
+   "tier": 5,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "221": {
+   "name": "Basic Bending Machine",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "222": {
+   "name": "Advanced Bending Machine",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "223": {
+   "name": "Advanced Bending Machine II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "224": {
+   "name": "Advanced Bending Machine III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "225": {
+   "name": "Advanced Bending Machine IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "231": {
+   "name": "Basic Canning Machine",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "232": {
+   "name": "Advanced Canning Machine",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "233": {
+   "name": "Advanced Canning Machine II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "234": {
+   "name": "Advanced Canning Machine III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "235": {
+   "name": "Advanced Canning Machine IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "241": {
+   "name": "Basic Compressor",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "242": {
+   "name": "Advanced Compressor",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "243": {
+   "name": "Advanced Compressor II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "244": {
+   "name": "Advanced Compressor III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "245": {
+   "name": "Singularity Compressor",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "251": {
+   "name": "Basic Cutting Machine",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "252": {
+   "name": "Advanced Cutting Machine",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "253": {
+   "name": "Advanced Cutting Machine II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "254": {
+   "name": "Advanced Cutting Machine III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "255": {
+   "name": "Advanced Cutting Machine IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "261": {
+   "name": "Basic Electric Furnace",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "262": {
+   "name": "Advanced Electric Furnace",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "263": {
+   "name": "Advanced Electric Furnace II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "264": {
+   "name": "Advanced Electric Furnace III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "265": {
+   "name": "Electron Excitement Processor",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "271": {
+   "name": "Basic Extractor",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "272": {
+   "name": "Advanced Extractor",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "273": {
+   "name": "Advanced Extractor II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "274": {
+   "name": "Advanced Extractor III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "275": {
+   "name": "Vacuum Extractor",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "281": {
+   "name": "Basic Extruder",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "282": {
+   "name": "Advanced Extruder",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "283": {
+   "name": "Advanced Extruder II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "284": {
+   "name": "Advanced Extruder III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "285": {
+   "name": "Advanced Extruder IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "291": {
+   "name": "Basic Lathe",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "292": {
+   "name": "Advanced Lathe",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "293": {
+   "name": "Advanced Lathe II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "294": {
+   "name": "Advanced Lathe III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "295": {
+   "name": "Advanced Lathe IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "301": {
+   "name": "Basic Macerator",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "302": {
+   "name": "Advanced Macerator",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "303": {
+   "name": "Universal Macerator",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "304": {
+   "name": "Universal Pulverizer",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "305": {
+   "name": "Blend-O-Matic 9001",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "311": {
+   "name": "Basic Microwave",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "312": {
+   "name": "Advanced Microwave",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "313": {
+   "name": "Advanced Microwave II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "314": {
+   "name": "Advanced Microwave III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "315": {
+   "name": "Advanced Microwave IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "321": {
+   "name": "Basic Printer",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "322": {
+   "name": "Advanced Printer",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "323": {
+   "name": "Advanced Printer II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "324": {
+   "name": "Advanced Printer III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "325": {
+   "name": "Advanced Printer IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "326": {
+   "name": "Advanced Printer V",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "327": {
+   "name": "Advanced Printer VI",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "328": {
+   "name": "Advanced Printer VII",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "331": {
+   "name": "Basic Recycler",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "332": {
+   "name": "Advanced Recycler",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "333": {
+   "name": "Advanced Recycler II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "334": {
+   "name": "Advanced Recycler III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "335": {
+   "name": "The Oblitterator",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "351": {
+   "name": "Basic Wiremill",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "352": {
+   "name": "Advanced Wiremill",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "353": {
+   "name": "Advanced Wiremill II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "354": {
+   "name": "Advanced Wiremill III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "355": {
+   "name": "Advanced Wiremill IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "361": {
+   "name": "Basic Centrifuge",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "362": {
+   "name": "Advanced Centrifuge",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "363": {
+   "name": "Turbo Centrifuge",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "364": {
+   "name": "Molecular Separator",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "365": {
+   "name": "Molecular Cyclone",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "371": {
+   "name": "Basic Electrolyzer",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "372": {
+   "name": "Advanced Electrolyzer",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "373": {
+   "name": "Advanced Electrolyzer II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "374": {
+   "name": "Advanced Electrolyzer III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "375": {
+   "name": "Molecular Disintegrator E-4908",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "381": {
+   "name": "Basic Thermal Centrifuge",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "382": {
+   "name": "Advanced Thermal Centrifuge",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "383": {
+   "name": "Advanced Thermal Centrifuge II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "384": {
+   "name": "Advanced Thermal Centrifuge III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "385": {
+   "name": "Blaze Sweatshop T-6350",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "391": {
+   "name": "Basic Ore Washing Plant",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "392": {
+   "name": "Advanced Ore Washing Plant",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "393": {
+   "name": "Advanced Ore Washing Plant II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "394": {
+   "name": "Advanced Ore Washing Plant III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "395": {
+   "name": "Repurposed Laundry-Washer I-360",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "411": {
+   "name": "Basic Unpackager",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "412": {
+   "name": "Advanced Unpackager",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "413": {
+   "name": "Advanced Unpackager II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "414": {
+   "name": "Advanced Unpackager III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "415": {
+   "name": "Unboxinator",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "416": {
+   "name": "Unboxinator",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "417": {
+   "name": "Unboxinator",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "418": {
+   "name": "Unboxinator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "421": {
+   "name": "Basic Chemical Reactor",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "422": {
+   "name": "Advanced Chemical Reactor",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "423": {
+   "name": "Advanced Chemical Reactor II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "424": {
+   "name": "Advanced Chemical Reactor III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "425": {
+   "name": "Advanced Chemical Reactor IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "431": {
+   "name": "Basic Fluid Canner",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "432": {
+   "name": "Advanced Fluid Canner",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "433": {
+   "name": "Quick Fluid Canner",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "434": {
+   "name": "Turbo Fluid Canner",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "435": {
+   "name": "Instant Fluid Canner",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "471": {
+   "name": "Basic Amplifabricator",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "472": {
+   "name": "Advanced Amplifabricator",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "473": {
+   "name": "Advanced Amplifabricator II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "474": {
+   "name": "Advanced Amplifabricator III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "475": {
+   "name": "Advanced Amplifabricator IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "501": {
+   "name": "Basic Fermenter",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "502": {
+   "name": "Advanced Fermenter",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "503": {
+   "name": "Advanced Fermenter II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "504": {
+   "name": "Advanced Fermenter III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "505": {
+   "name": "Advanced Fermenter IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "511": {
+   "name": "Basic Fluid Extractor",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "512": {
+   "name": "Advanced Fluid Extractor",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "513": {
+   "name": "Advanced Fluid Extractor II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "514": {
+   "name": "Advanced Fluid Extractor III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "515": {
+   "name": "Advanced Fluid Extractor IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "521": {
+   "name": "Basic Fluid Solidifier",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "522": {
+   "name": "Advanced Fluid Solidifier",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "523": {
+   "name": "Advanced Fluid Solidifier II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "524": {
+   "name": "Advanced Fluid Solidifier III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "525": {
+   "name": "Advanced Fluid Solidifier IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "531": {
+   "name": "Basic Distillery",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "532": {
+   "name": "Advanced Distillery",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "533": {
+   "name": "Advanced Distillery II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "534": {
+   "name": "Advanced Distillery III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "535": {
+   "name": "Advanced Distillery IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "541": {
+   "name": "Basic Chemical Bath",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "542": {
+   "name": "Advanced Chemical Bath",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "543": {
+   "name": "Advanced Chemical Bath II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "544": {
+   "name": "Advanced Chemical Bath III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "545": {
+   "name": "Advanced Chemical Bath IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "551": {
+   "name": "Basic Polarizer",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "552": {
+   "name": "Advanced Polarizer",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "553": {
+   "name": "Advanced Polarizer II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "554": {
+   "name": "Advanced Polarizer III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "555": {
+   "name": "Advanced Polarizer IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "561": {
+   "name": "Basic Electromagnetic Separator",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "562": {
+   "name": "Advanced Electromagnetic Separator",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "563": {
+   "name": "Advanced Electromagnetic Separator II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "564": {
+   "name": "Advanced Electromagnetic Separator III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "565": {
+   "name": "Advanced Electromagnetic Separator IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "571": {
+   "name": "Basic Autoclave",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "572": {
+   "name": "Advanced Autoclave",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "573": {
+   "name": "Advanced Autoclave II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "574": {
+   "name": "Advanced Autoclave III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "575": {
+   "name": "Advanced Autoclave IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "581": {
+   "name": "Basic Mixer",
+   "tier": 1,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "582": {
+   "name": "Advanced Mixer",
+   "tier": 2,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "583": {
+   "name": "Advanced Mixer II",
+   "tier": 3,
+   "inputs": 6,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "584": {
+   "name": "Advanced Mixer III",
+   "tier": 4,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "585": {
+   "name": "Advanced Mixer IV",
+   "tier": 5,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "591": {
+   "name": "Basic Precision Laser Engraver",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "592": {
+   "name": "Advanced Precision Laser Engraver",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "593": {
+   "name": "Advanced Precision Laser Engraver II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "594": {
+   "name": "Advanced Precision Laser Engraver III",
+   "tier": 4,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "595": {
+   "name": "Advanced Precision Laser Engraver IV",
+   "tier": 5,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "601": {
+   "name": "Basic Forming Press",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "602": {
+   "name": "Advanced Forming Press",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "603": {
+   "name": "Advanced Forming Press II",
+   "tier": 3,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "604": {
+   "name": "Advanced Forming Press III",
+   "tier": 4,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "605": {
+   "name": "Advanced Forming Press IV",
+   "tier": 5,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "611": {
+   "name": "Basic Forge Hammer",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "612": {
+   "name": "Advanced Forge Hammer",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "613": {
+   "name": "Advanced Forge Hammer II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "614": {
+   "name": "Advanced Forge Hammer III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "615": {
+   "name": "Advanced Forge Hammer IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "621": {
+   "name": "Basic Fluid Heater",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "622": {
+   "name": "Advanced Fluid Heater",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "623": {
+   "name": "Advanced Fluid Heater II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "624": {
+   "name": "Advanced Fluid Heater III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "625": {
+   "name": "Advanced Fluid Heater IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "631": {
+   "name": "Basic Slicing Machine",
+   "tier": 1,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "632": {
+   "name": "Advanced Slicing Machine",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "633": {
+   "name": "Advanced Slicing Machine II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "634": {
+   "name": "Advanced Slicing Machine III",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "635": {
+   "name": "Advanced Slicing Machine IV",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "641": {
+   "name": "Basic Sifting Machine",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "642": {
+   "name": "Advanced Sifting Machine",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "643": {
+   "name": "Advanced Sifting Machine II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "644": {
+   "name": "Advanced Sifting Machine III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "645": {
+   "name": "Advanced Sifting Machine IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "651": {
+   "name": "Basic Arc Furnace",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "652": {
+   "name": "Advanced Arc Furnace",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "653": {
+   "name": "Advanced Arc Furnace II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "654": {
+   "name": "Advanced Arc Furnace III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "655": {
+   "name": "Advanced Arc Furnace IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "661": {
+   "name": "Basic Plasma Arc Furnace",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "662": {
+   "name": "Advanced Plasma Arc Furnace",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "663": {
+   "name": "Advanced Plasma Arc Furnace II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "664": {
+   "name": "Advanced Plasma Arc Furnace III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "665": {
+   "name": "Advanced Plasma Arc Furnace IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "671": {
+   "name": "Basic Electric Oven",
+   "tier": 1,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "672": {
+   "name": "Advanced Electric Oven",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "673": {
+   "name": "Advanced Electric Oven II",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "674": {
+   "name": "Advanced Electric Oven III",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "675": {
+   "name": "Advanced Electric Oven IV",
+   "tier": 5,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "767": {
+   "name": "Deprecated ULV Simple Washer",
+   "tier": 0,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechSimpleWasher.java"
+  },
+  "813": {
+   "name": "Chemical Dehydrator I",
+   "tier": 4,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "814": {
+   "name": "Chemical Dehydrator II",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "815": {
+   "name": "Chemical Dehydrator III",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "816": {
+   "name": "Chemical Dehydrator IV",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "911": {
+   "name": "Basic Dehydrator I",
+   "tier": 2,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "912": {
+   "name": "Basic Dehydrator II",
+   "tier": 3,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechDehydrator.java"
+  },
+  "1180": {
+   "name": "Basic Circuit Assembler",
+   "tier": 1,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1181": {
+   "name": "Advanced Circuit Assembler",
+   "tier": 2,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1182": {
+   "name": "Advanced Circuit Assembler II",
+   "tier": 3,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1183": {
+   "name": "Advanced Circuit Assembler III",
+   "tier": 4,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1184": {
+   "name": "Advanced Circuit Assembler IV",
+   "tier": 5,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1185": {
+   "name": "Advanced Circuit Assembler V",
+   "tier": 6,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1186": {
+   "name": "Advanced Circuit Assembler VI",
+   "tier": 7,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "1187": {
+   "name": "Advanced Circuit Assembler VII",
+   "tier": 8,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10760": {
+   "name": "Elite Alloy Smelter",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10761": {
+   "name": "Elite Alloy Smelter II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10762": {
+   "name": "Ultimate Alloy Integrator",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10763": {
+   "name": "Epic Alloy Integrator",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10764": {
+   "name": "Epic Alloy Integrator II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10765": {
+   "name": "Epic Alloy Integrator III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10766": {
+   "name": "Epic Alloy Integrator IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10770": {
+   "name": "Elite Amplifabricator",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10771": {
+   "name": "Elite Amplifabricator II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10772": {
+   "name": "Ultimate Amplicreator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10773": {
+   "name": "Epic Amplicreator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10774": {
+   "name": "Epic Amplicreator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10775": {
+   "name": "Epic Amplicreator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10776": {
+   "name": "Epic Amplicreator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10780": {
+   "name": "Elite Assembling Machine",
+   "tier": 6,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10781": {
+   "name": "Elite Assembling Machine II",
+   "tier": 7,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10782": {
+   "name": "Ultimate Assembly Constructor",
+   "tier": 8,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10783": {
+   "name": "Epic Assembly Constructor",
+   "tier": 9,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10784": {
+   "name": "Epic Assembly Constructor II",
+   "tier": 10,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10785": {
+   "name": "Epic Assembly Constructor III",
+   "tier": 11,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10786": {
+   "name": "Epic Assembly Constructor IV",
+   "tier": 12,
+   "inputs": 9,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10790": {
+   "name": "Elite Autoclave",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10791": {
+   "name": "Elite Autoclave II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10792": {
+   "name": "Ultimate Pressure Cooker",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10793": {
+   "name": "Epic Pressure Cooker",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10794": {
+   "name": "Epic Pressure Cooker II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10795": {
+   "name": "Epic Pressure Cooker III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10796": {
+   "name": "Epic Pressure Cooker IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10800": {
+   "name": "Elite Bending Machine",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10801": {
+   "name": "Elite Bending Machine II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10802": {
+   "name": "Ultimate Bending Unit",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10803": {
+   "name": "Epic Bending Unit",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10804": {
+   "name": "Epic Bending Unit II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10805": {
+   "name": "Epic Bending Unit III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10806": {
+   "name": "Epic Bending Unit IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10810": {
+   "name": "Elite Compressor",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10811": {
+   "name": "Elite Compressor II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10812": {
+   "name": "Ultimate Matter Constrictor",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10813": {
+   "name": "Epic Matter Constrictor",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10814": {
+   "name": "Epic Matter Constrictor II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10815": {
+   "name": "Epic Matter Constrictor III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10816": {
+   "name": "Epic Matter Constrictor IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10820": {
+   "name": "Elite Cutting Machine",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10821": {
+   "name": "Elite Cutting Machine II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10822": {
+   "name": "Ultimate Object Divider",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10823": {
+   "name": "Epic Object Divider",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10824": {
+   "name": "Epic Object Divider II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10825": {
+   "name": "Epic Object Divider III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10826": {
+   "name": "Epic Object Divider IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10830": {
+   "name": "Elite Distillery",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10831": {
+   "name": "Elite Distillery II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10832": {
+   "name": "Ultimate Fraction Splitter",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10833": {
+   "name": "Epic Fraction Splitter",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10834": {
+   "name": "Epic Fraction Splitter II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10835": {
+   "name": "Epic Fraction Splitter III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10836": {
+   "name": "Epic Fraction Splitter IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10840": {
+   "name": "Elite Electric Furnace",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10841": {
+   "name": "Elite Electric Furnace II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10842": {
+   "name": "Ultimate Atom Stimulator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10843": {
+   "name": "Epic Atom Stimulator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10844": {
+   "name": "Epic Atom Stimulator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10845": {
+   "name": "Epic Atom Stimulator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10846": {
+   "name": "Epic Atom Stimulator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10850": {
+   "name": "Elite Electrolyzer",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10851": {
+   "name": "Elite Electrolyzer II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10852": {
+   "name": "Ultimate Ionizer",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10853": {
+   "name": "Epic Ionizer",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10854": {
+   "name": "Epic Ionizer II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10855": {
+   "name": "Epic Ionizer III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10856": {
+   "name": "Epic Ionizer IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10860": {
+   "name": "Elite Electromagnetic Separator",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10861": {
+   "name": "Elite Electromagnetic Separator II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10862": {
+   "name": "Ultimate Magnetar Separator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10863": {
+   "name": "Epic Magnetar Separator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10864": {
+   "name": "Epic Magnetar Separator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10865": {
+   "name": "Epic Magnetar Separator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10866": {
+   "name": "Epic Magnetar Separator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10870": {
+   "name": "Elite Extractor",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10871": {
+   "name": "Elite Extractor II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10872": {
+   "name": "Ultimate Extractinator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10873": {
+   "name": "Epic Extractinator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10874": {
+   "name": "Epic Extractinator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10875": {
+   "name": "Epic Extractinator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10876": {
+   "name": "Epic Extractinator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10880": {
+   "name": "Elite Extruder",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10881": {
+   "name": "Elite Extruder II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10882": {
+   "name": "Ultimate Shape Driver",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10883": {
+   "name": "Epic Shape Driver",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10884": {
+   "name": "Epic Shape Driver II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10885": {
+   "name": "Epic Shape Driver III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10886": {
+   "name": "Epic Shape Driver IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10890": {
+   "name": "Elite Fluid Solidifier",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10891": {
+   "name": "Elite Fluid Solidifier II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10892": {
+   "name": "Ultimate Fluid Petrificator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10893": {
+   "name": "Epic Fluid Petrificator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10894": {
+   "name": "Epic Fluid Petrificator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10895": {
+   "name": "Epic Fluid Petrificator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10896": {
+   "name": "Epic Fluid Petrificator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10900": {
+   "name": "Elite Forming Press",
+   "tier": 6,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10901": {
+   "name": "Elite Forming Press II",
+   "tier": 7,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10902": {
+   "name": "Ultimate Surface Shifter",
+   "tier": 8,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10903": {
+   "name": "Epic Surface Shifter",
+   "tier": 9,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10904": {
+   "name": "Epic Surface Shifter II",
+   "tier": 10,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10905": {
+   "name": "Epic Surface Shifter III",
+   "tier": 11,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10906": {
+   "name": "Epic Surface Shifter IV",
+   "tier": 12,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10910": {
+   "name": "Elite Forge Hammer",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10911": {
+   "name": "Elite Forge Hammer II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10912": {
+   "name": "Ultimate Impact Modulator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10913": {
+   "name": "Epic Impact Modulator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10914": {
+   "name": "Epic Impact Modulator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10915": {
+   "name": "Epic Impact Modulator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10916": {
+   "name": "Epic Impact Modulator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10920": {
+   "name": "Elite Lathe",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10921": {
+   "name": "Elite Lathe II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10922": {
+   "name": "Ultimate Turn-O-Matic",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10923": {
+   "name": "Epic Turn-O-Matic",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10924": {
+   "name": "Epic Turn-O-Matic II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10925": {
+   "name": "Epic Turn-O-Matic III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10926": {
+   "name": "Epic Turn-O-Matic IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10930": {
+   "name": "Elite Precision Laser Engraver",
+   "tier": 6,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10931": {
+   "name": "Elite Precision Laser Engraver II",
+   "tier": 7,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10932": {
+   "name": "Ultimate Exact Photon Cannon",
+   "tier": 8,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10933": {
+   "name": "Epic Exact Photon Cannon",
+   "tier": 9,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10934": {
+   "name": "Epic Exact Photon Cannon II",
+   "tier": 10,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10935": {
+   "name": "Epic Exact Photon Cannon III",
+   "tier": 11,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10936": {
+   "name": "Epic Exact Photon Cannon IV",
+   "tier": 12,
+   "inputs": 4,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10940": {
+   "name": "Elite Pulverizer",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10941": {
+   "name": "Elite Pulverizer II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10942": {
+   "name": "Ultimate Shape Eliminator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10943": {
+   "name": "Epic Shape Eliminator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10944": {
+   "name": "Epic Shape Eliminator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10945": {
+   "name": "Epic Shape Eliminator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10946": {
+   "name": "Epic Shape Eliminator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10960": {
+   "name": "Elite Microwave",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10961": {
+   "name": "Elite Microwave II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10962": {
+   "name": "Ultimate UFO Engine",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10963": {
+   "name": "Epic UFO Engine",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10964": {
+   "name": "Epic UFO Engine II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10965": {
+   "name": "Epic UFO Engine III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10966": {
+   "name": "Epic UFO Engine IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10970": {
+   "name": "Elite Ore Washing Plant",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10971": {
+   "name": "Elite Ore Washing Plant II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10972": {
+   "name": "Ultimate Ore Washing Machine",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10973": {
+   "name": "Epic Ore Washing Machine",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10974": {
+   "name": "Epic Ore Washing Machine II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10975": {
+   "name": "Epic Ore Washing Machine III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10976": {
+   "name": "Epic Ore Washing Machine IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10980": {
+   "name": "Elite Polarizer",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10981": {
+   "name": "Elite Polarizer II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10982": {
+   "name": "Ultimate Magnetism Inducer",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10983": {
+   "name": "Epic Magnetism Inducer",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10984": {
+   "name": "Epic Magnetism Inducer II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10985": {
+   "name": "Epic Magnetism Inducer III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10986": {
+   "name": "Epic Magnetism Inducer IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10990": {
+   "name": "Elite Recycler",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10991": {
+   "name": "Elite Recycler II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10992": {
+   "name": "Ultimate Scrap-O-Matic",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10993": {
+   "name": "Epic Scrap-O-Matic",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10994": {
+   "name": "Epic Scrap-O-Matic II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10995": {
+   "name": "Epic Scrap-O-Matic III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "10996": {
+   "name": "Epic Scrap-O-Matic IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11020": {
+   "name": "Elite Sifting Machine",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11021": {
+   "name": "Elite Sifting Machine II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11022": {
+   "name": "Ultimate Pulsation Filter",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11023": {
+   "name": "Epic Pulsation Filter",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11024": {
+   "name": "Epic Pulsation Filter II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11025": {
+   "name": "Epic Pulsation Filter III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11026": {
+   "name": "Epic Pulsation Filter IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11028": {
+   "name": "Elite Slicing Machine",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11029": {
+   "name": "Elite Slicing Machine II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11030": {
+   "name": "Ultimate Quantum Slicer",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11033": {
+   "name": "Epic Quantum Slicer",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11034": {
+   "name": "Epic Quantum Slicer II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11035": {
+   "name": "Epic Quantum Slicer III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11036": {
+   "name": "Epic Quantum Slicer IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11040": {
+   "name": "Elite Thermal Centrifuge",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11041": {
+   "name": "Elite Thermal Centrifuge II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11042": {
+   "name": "Ultimate Fire Cyclone",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11043": {
+   "name": "Epic Fire Cyclone",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11044": {
+   "name": "Epic Fire Cyclone II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11045": {
+   "name": "Epic Fire Cyclone III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11046": {
+   "name": "Epic Fire Cyclone IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11050": {
+   "name": "Elite Wiremill",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11051": {
+   "name": "Elite Wiremill II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11052": {
+   "name": "Ultimate Wire Transfigurator",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11053": {
+   "name": "Epic Wire Transfigurator",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11054": {
+   "name": "Epic Wire Transfigurator II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11055": {
+   "name": "Epic Wire Transfigurator III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11056": {
+   "name": "Epic Wire Transfigurator IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11070": {
+   "name": "Elite Arc Furnace",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11071": {
+   "name": "Elite Arc Furnace II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11072": {
+   "name": "Ultimate Short Circuit Heater",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11073": {
+   "name": "Epic Short Circuit Heater",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11074": {
+   "name": "Epic Short Circuit Heater II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11075": {
+   "name": "Epic Short Circuit Heater III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11076": {
+   "name": "Epic Short Circuit Heater IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11080": {
+   "name": "Elite Centrifuge",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11081": {
+   "name": "Elite Centrifuge II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11082": {
+   "name": "Ultimate Molecular Tornado",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11083": {
+   "name": "Epic Molecular Tornado",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11084": {
+   "name": "Epic Molecular Tornado II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11085": {
+   "name": "Epic Molecular Tornado III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11086": {
+   "name": "Epic Molecular Tornado IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 6,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11090": {
+   "name": "Elite Plasma Arc Furnace",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11091": {
+   "name": "Elite Plasma Arc Furnace II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11092": {
+   "name": "Ultimate Plasma Discharge Heater",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11093": {
+   "name": "Epic Plasma Discharge Heater",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11094": {
+   "name": "Epic Plasma Discharge Heater II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11095": {
+   "name": "Epic Plasma Discharge Heater III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11096": {
+   "name": "Epic Plasma Discharge Heater IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 9,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11130": {
+   "name": "Elite Canning Machine",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11131": {
+   "name": "Elite Canning Machine II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11132": {
+   "name": "Ultimate Can Operator",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11133": {
+   "name": "Epic Can Operator",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11134": {
+   "name": "Epic Can Operator II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11135": {
+   "name": "Epic Can Operator III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11136": {
+   "name": "Epic Can Operator IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11140": {
+   "name": "Elite Chemical Bath",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11141": {
+   "name": "Elite Chemical Bath II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11142": {
+   "name": "Ultimate Chemical Dunktron",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11143": {
+   "name": "Epic Chemical Dunktron",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11144": {
+   "name": "Epic Chemical Dunktron II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11145": {
+   "name": "Epic Chemical Dunktron III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11146": {
+   "name": "Epic Chemical Dunktron IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 3,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11150": {
+   "name": "Elite Chemical Reactor",
+   "tier": 6,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11151": {
+   "name": "Elite Chemical Reactor II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11152": {
+   "name": "Ultimate Chemical Perforer",
+   "tier": 8,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11153": {
+   "name": "Epic Chemical Performer",
+   "tier": 9,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11154": {
+   "name": "Epic Chemical Performer II",
+   "tier": 10,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11155": {
+   "name": "Epic Chemical Performer III",
+   "tier": 11,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11156": {
+   "name": "Epic Chemical Performer IV",
+   "tier": 12,
+   "inputs": 2,
+   "outputs": 2,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11170": {
+   "name": "Elite Fermenter",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11171": {
+   "name": "Elite Fermenter II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11172": {
+   "name": "Ultimate Fermentation Hastener",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11173": {
+   "name": "Epic Fermentation Hastener",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11174": {
+   "name": "Epic Fermentation Hastener II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11175": {
+   "name": "Epic Fermentation Hastener III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11176": {
+   "name": "Epic Fermentation Hastener IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11180": {
+   "name": "Elite Fluid Canner",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11181": {
+   "name": "Elite Fluid Canner II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11182": {
+   "name": "Ultimate Liquid Can Actuator",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11183": {
+   "name": "Epic Liquid Can Actuator",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11184": {
+   "name": "Epic Liquid Can Actuator II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11185": {
+   "name": "Epic Liquid Can Actuator III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11186": {
+   "name": "Epic Liquid Can Actuator IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11190": {
+   "name": "Elite Fluid Extractor",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11191": {
+   "name": "Elite Fluid Extractor II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11192": {
+   "name": "Ultimate Liquefying Sucker",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11193": {
+   "name": "Epic Liquefying Sucker",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11194": {
+   "name": "Epic Liquefying Sucker II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11195": {
+   "name": "Epic Liquefying Sucker III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11196": {
+   "name": "Epic Liquefying Sucker IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11200": {
+   "name": "Elite Fluid Heater",
+   "tier": 6,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11201": {
+   "name": "Elite Fluid Heater II",
+   "tier": 7,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11202": {
+   "name": "Ultimate Heat Infuser",
+   "tier": 8,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11203": {
+   "name": "Epic Heat Infuser",
+   "tier": 9,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11204": {
+   "name": "Epic Heat Infuser II",
+   "tier": 10,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11205": {
+   "name": "Epic Heat Infuser III",
+   "tier": 11,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11206": {
+   "name": "Epic Heat Infuser IV",
+   "tier": 12,
+   "inputs": 1,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11210": {
+   "name": "Elite Mixer",
+   "tier": 6,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11211": {
+   "name": "Elite Mixer II",
+   "tier": 7,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11212": {
+   "name": "Ultimate Matter Organizer",
+   "tier": 8,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11213": {
+   "name": "Epic Matter Organizer",
+   "tier": 9,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11214": {
+   "name": "Epic Matter Organizer II",
+   "tier": 10,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11215": {
+   "name": "Epic Matter Organizer III",
+   "tier": 11,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "11216": {
+   "name": "Epic Matter Organizer IV",
+   "tier": 12,
+   "inputs": 9,
+   "outputs": 4,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12090": {
+   "name": "Ultimate Circuit Assembling Machine",
+   "tier": 9,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12091": {
+   "name": "Ultimate Circuit Assembling Machine II",
+   "tier": 10,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12092": {
+   "name": "Ultimate Circuit Assembling Machine III",
+   "tier": 11,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12093": {
+   "name": "Ultimate Circuit Assembling Machine IV",
+   "tier": 12,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12094": {
+   "name": "Ultimate Circuit Assembling Machine V",
+   "tier": 13,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "12096": {
+   "name": "MAX Circuit Assembling Machine",
+   "tier": 14,
+   "inputs": 6,
+   "outputs": 1,
+   "file": "src/main/java/gregtech/loaders/preload/LoaderMetaTileEntities.java"
+  },
+  "13534": {
+   "name": "Basic Tool Casting Machine",
+   "tier": 2,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/ggfab/GigaGramFab.java"
+  },
+  "13535": {
+   "name": "Advanced Tool Casting Machine",
+   "tier": 3,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/ggfab/GigaGramFab.java"
+  },
+  "13536": {
+   "name": "Master Tool Casting Machine",
+   "tier": 4,
+   "inputs": 1,
+   "outputs": 4,
+   "file": "src/main/java/ggfab/GigaGramFab.java"
+  },
+  "31031": {
+   "name": "Reactor Processing Unit I",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechLFTR.java"
+  },
+  "31032": {
+   "name": "Reactor Processing Unit II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechLFTR.java"
+  },
+  "31033": {
+   "name": "Cold Trap I",
+   "tier": 5,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechLFTR.java"
+  },
+  "31034": {
+   "name": "Cold Trap II",
+   "tier": 7,
+   "inputs": 2,
+   "outputs": 9,
+   "file": "src/main/java/gtPlusPlus/xmod/gregtech/registration/gregtech/GregtechLFTR.java"
+  }
+ }
+}

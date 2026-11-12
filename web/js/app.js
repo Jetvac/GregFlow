@@ -1,15 +1,20 @@
 // Application bootstrap and glue.
 import { $t, $tm, lbl, translateStatic, uiLang, setUiLang } from './i18n.js';
-import { api } from './api.js';
-import { esc, num, setUnit, getUnit, setAtlasResolver, fromUnit, setLang, getLang, learnNames } from './fmt.js';
-import { machineList, machineListText } from './machines.js';
+import { api, CLIENT_VERSION } from './api.js';
+import { esc, num, rate, iconHtml, nm, TIERS, setUnit, getUnit, setAtlasResolver, fromUnit, setLang, getLang, learnNames } from './fmt.js';
+import { machineList, machineListText, billOfMaterials, bomText } from './machines.js';
+import { planForTarget } from './target.js';
+import { COILS } from './overclock.js';
+import { nodeLabel } from './fixes.js';
 import * as M from './model.js';
 import { solve, solveBlock, recipeTier } from './solver.js';
 import { Canvas } from './canvas.js';
 import { CatalogPanel } from './catalog.js';
 import { PropsPanel } from './props.js';
 import { editRecipe, openModal } from './editor.js';
+import { bindUi, setTab, tabsHtml } from './ui.js';
 import { prefs } from './prefs.js';
+import { setSlotTable } from './slots.js';
 import { arrange } from './layout.js';
 import { exportPng } from './snapshot.js';
 
@@ -123,13 +128,16 @@ class App {
     this.project = p && p.format === 'gtnh-planner-project' ? p : M.newProject($t('Новая линия'), this.datasetInfo());
     setUnit(this.root.units || 'min');
     this.savedHash = store.get(SAVED);
+    this.showArmSlots = prefs.armSlots();
     this.canvas = new Canvas(document.getElementById('canvas'), this);
     this.catalog = new CatalogPanel(document.getElementById('catalog'), this);
     this.props = new PropsPanel(document.getElementById('props'), this);
+    bindUi();
     this.bindToolbar();
     this.bindKeys();
     this.changed({ history: false });
     this.loadProjectNames();
+    api.machineSlots().then(t => { setSlotTable(t); this.canvas.render(); this.props.render(); }).catch(() => setSlotTable(null));
     this.catalog.search();
     if (this.project.nodes.length) requestAnimationFrame(() => this.canvas.fit());
     if (!this.status?.catalog || !this.status?.setup?.welcomed) this.setupDialog();
@@ -229,6 +237,17 @@ class App {
   async refreshStatus() {
     this.status = await api.status();
     this.renderBadges();
+    this.renderStale();
+  }
+
+  /** The page comes from the files on disk, the API from the code the server started with: warn when they differ. */
+  renderStale() {
+    const s = this.status;
+    const old = s && (s.stale || s.app !== CLIENT_VERSION);
+    let el = document.getElementById('stale');
+    if (!old) { el?.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'stale'; document.body.appendChild(el); }
+    el.innerHTML = `<b>${$t('Перезапустите планировщик.')}</b> ${$t('Файлы программы обновлены, а сервер ещё работает со старой версией')} (${esc(s.app || '?')} ≠ ${esc(CLIENT_VERSION)}${s.stale ? ', ' + $t('код изменён') : ''}). ${$t('Закройте окно сервера и запустите start.bat (или start.sh) снова, затем обновите страницу. Пока часть функций может не работать.')}`;
   }
 
   /** Dataset whose atlas should be used to draw icons of `recipe` (or active one). */
@@ -276,8 +295,9 @@ class App {
   }
 
   showProblems() {
+    setTab('summary', 'problems'); setTab('block', 'problems');
     this.select(null);
-    requestAnimationFrame(() => document.getElementById('problems')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    requestAnimationFrame(() => document.getElementById('props').scrollTop = 0);
   }
 
   /** Short hash of the saved form of the schematic (to tell whether it changed since saving). */
@@ -328,6 +348,7 @@ class App {
       for (const r of Object.values(p.recipes)) { r.inputs.forEach(add); r.outputs.forEach(add); }
       for (const n of p.nodes) { add(n.resource); add(n.gen); add(n.fuel?.res); (n.fuel?.outputs || []).forEach(o => add(o.res)); if (n.inner) walk(n.inner); }
       for (const e of p.edges) add(e.cable);
+      for (const c of COILS) add(c.item); // coil names for the multiblock fields
     };
     walk(this.root);
     try {
@@ -362,22 +383,109 @@ class App {
       <td><small>${g.nodes.map(x => `<a href="#" data-sel-node="${x.id}" data-path="${x.path.join(',')}">${x.path.length ? '▦ ' : ''}${esc(x.label)}</a>`).join(', ')}</small></td></tr>`).join('');
     const crows = L.cables.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.tier)}</td><td class="num"><b>${c.blocks}</b></td><td class="num">${c.links}</td><td class="num">${num(c.loss)}</td></tr>`).join('');
     const eon = M.energyOn(this.root);
-    const m = openModal(`<h3>${$t("Список машин схемы")}</h3>
-      <div class="note small">${$t("Сгруппировано по карте рецептов и уровню машины. Загрузка — средняя по числу машин. EU/t: полная мощность / фактически.")}</div>
+    const bomHtml = () => {
+      const B = billOfMaterials(this.root, this.rootResults, this.root.built || {});
+      const head = { machines: $t('Машины'), parts: $t('Детали мультиблоков'), energy: $t('Энергия') };
+      let g = null;
+      const rows = B.rows.map(x => {
+        const sep = x.group !== g ? `<tr class="grp"><td colspan="5">${head[x.group]}</td></tr>` : '';
+        g = x.group;
+        return `${sep}<tr class="${x.left === 0 ? 'done' : ''}"><td>${x.item ? iconHtml(x.item, this.iconDataset(), 'small') : ''}</td>
+          <td class="bname"><b>${esc(x.name)}</b>${x.tier ? ` <small>${esc(x.tier)}</small>` : ''}${x.approx ? `<br><small class="warnc">${$t('точный блок для этого уровня неизвестен')}</small>` : ''}</td>
+          <td class="num"><b>${x.need}</b>${x.unit ? ` <small>${esc(x.unit)}</small>` : ''}</td>
+          <td class="num"><input type="number" min="0" step="1" data-built="${esc(x.key)}" value="${x.built || ''}" placeholder="0"></td>
+          <td class="num">${x.left === 0 ? '✓' : x.left}</td></tr>`;
+      }).join('');
+      return `<div class="note small">${$t('Что нужно поставить для этой схемы (с блоками). Мультиблок — контроллер, его энергоразъёмы и катушки; корпус, шины и прочие части по подсказке структуры в игре здесь не считаются. Отмечайте, сколько уже построено — это сохраняется в схеме.')}</div>
+        ${B.rows.length ? `<table class="io bom"><tr><th></th><th>${$t('Что')}</th><th>${$t('Нужно')}</th><th>${$t('Построено')}</th><th>${$t('Осталось')}</th></tr>${rows}</table>
+        <div class="mtotal">${$t('Готово позиций:')} <b>${B.done}</b> ${$t('из')} <b>${B.total}</b></div>` : `<div class="note">${$t('Строить нечего — в схеме нет машин.')}</div>`}`;
+    };
+    const m = openModal(`<h3>${$t("Отчёт по схеме")}</h3>${tabsHtml('report', [
+      { id: 'machines', label: $t('Машины'), badge: L.totals.machines, html: `<div class="note small">${$t("Сгруппировано по карте рецептов и уровню машины. Загрузка — средняя по числу машин. EU/t: полная мощность / фактически.")}</div>
       ${L.machines.length ? t(mrows, [$t('Машина'), $t('Уровень'), $t('Шт.'), $t('Загрузка'), 'EU/t', $t('Узлы')]) : `<div class="note">${$t("Машин нет.")}</div>`}
-      <div class="mtotal">${$t("Всего машин:")} <b>${L.totals.machines}</b> (${L.machines.length} ${$t("видов) · EU/t:")} <b>${num(L.totals.euFull)}</b> ${$t("полная /")} <b>${num(L.totals.euAvg)}</b> ${$t("факт.")}</div>
-      ${eon ? `<h4>${$t("Генераторы")}</h4>${L.generators.length ? t(grows, [$t('Генератор'), $t('Уровень'), $t('Шт.'), $t('EU/t (выдаёт / макс.)'), $t('Топливо'), $t('Узлы')]) : `<div class="note">${$t("Генераторов нет.")}</div>`}
+      <div class="mtotal">${$t("Всего машин:")} <b>${L.totals.machines}</b> (${L.machines.length} ${$t("видов) · EU/t:")} <b>${num(L.totals.euFull)}</b> ${$t("полная /")} <b>${num(L.totals.euAvg)}</b> ${$t("факт.")}</div>` },
+      { id: 'bom', label: '🔨 ' + $t('Постройка'), html: `<div class="bomwrap">${bomHtml()}</div>` },
+      { id: 'energy', label: '⚡ ' + $t('Энергия'), html: `${eon ? `<h4>${$t("Генераторы")}</h4>${L.generators.length ? t(grows, [$t('Генератор'), $t('Уровень'), $t('Шт.'), $t('EU/t (выдаёт / макс.)'), $t('Топливо'), $t('Узлы')]) : `<div class="note">${$t("Генераторов нет.")}</div>`}
       <h4>${$t("Кабели")}</h4>${L.cables.length ? t(crows, [$t('Кабель'), $t('Уровень'), $t('Блоков'), $t('Связей'), $t('Потери EU/t')]) : `<div class="note">${$t("Кабелей нет (генераторы вплотную или связи без кабеля).")}</div>`}
-      <div class="mtotal">${$t("Генерация:")} <b>${num(L.totals.generated)}</b> ${$t("EU/t из")} <b>${num(L.totals.capacity)}</b> ${$t("· потери в кабелях:")} <b>${num(L.totals.losses)}</b> EU/t${L.totals.unpowered ? ` · <span class="warnc">${$t("без питания:")} ${num(L.totals.unpowered)} EU/t</span>` : ''}</div>` : `<div class="note small">${$t("Учёт энергии выключен — генераторы и кабели не показаны.")}</div>`}
-      ${this.props.balanceHtml(1e9, this.rootResults).replace(/<div class="btnrow">.*?<\/div>/s, '')}
-      <div class="btnrow"><button data-copy>${$t("Копировать как текст")}</button></div>`, 'wide');
+      <div class="mtotal">${$t("Генерация:")} <b>${num(L.totals.generated)}</b> ${$t("EU/t из")} <b>${num(L.totals.capacity)}</b> ${$t("· потери в кабелях:")} <b>${num(L.totals.losses)}</b> EU/t${L.totals.unpowered ? ` · <span class="warnc">${$t("без питания:")} ${num(L.totals.unpowered)} EU/t</span>` : ''}</div>` : `<div class="note small">${$t("Учёт энергии выключен — генераторы и кабели не показаны.")}</div>`}` },
+      { id: 'balance', label: $t('Баланс'), html: this.props.balanceHtml(1e9, this.rootResults).replace(/<div class="btnrow">.*?<\/div>/s, '') || `<div class="note">${$t('нет')}</div>` },
+    ])}
+      <div class="btnrow"><button data-copy>${$t("Копировать как текст")}</button></div>`, 'wide report');
+    m.el.addEventListener('change', e => {
+      const k = e.target.dataset.built;
+      if (k == null) return;
+      const v = Math.max(0, Math.floor(+e.target.value || 0));
+      this.root.built = { ...(this.root.built || {}) };
+      if (v) this.root.built[k] = v; else delete this.root.built[k];
+      this.changed({ solve: false });
+      const w = m.el.querySelector('.bomwrap');
+      if (w) { w.innerHTML = bomHtml(); w.querySelector(`[data-built="${CSS.escape(k)}"]`)?.focus(); }
+    });
     m.el.addEventListener('click', async e => {
       const sel = e.target.dataset.selNode;
       if (sel) { e.preventDefault(); m.close(); this.path = (e.target.dataset.path || '').split(',').filter(Boolean); this.changed({ history: false }); this.select({ type: 'node', id: sel }); return; }
       if (e.target.dataset.copy != null) {
-        const text = machineListText(L, eon, this.rootResults?.balance);
+        const text = machineListText(L, eon, this.rootResults?.balance) + '\n\n' + bomText(billOfMaterials(this.root, this.rootResults, this.root.built || {}));
         try { await navigator.clipboard.writeText(text); this.toast($t('Список скопирован в буфер обмена')); }
         catch { download(safeName(this.project.name) + $t('-машины.txt'), text); }
+      }
+    });
+  }
+
+  /** Plan the line for a target output (target.js) and offer to apply it. */
+  planDialog(target) {
+    const p = this.root;
+    const n = M.node(p, target.node);
+    const r = n && M.recipeOf(p, n);
+    const e = r?.outputs?.[+target.port.slice(1)];
+    if (!e) return;
+    const P = planForTarget(p, target);
+    if (P.error) { this.toast($t('Для этой машины нельзя посчитать план: нет длительности рецепта или машина не запускается.'), 'warn'); return; }
+    const ds = this.iconDataset(r);
+    const k = e.kind;
+    const changed = [...P.rows, ...P.gens].filter(x => x.count !== x.old);
+    const mrow = x => {
+      const m = M.node(p, x.id), mr = M.recipeOf(p, m), mp = this.rootResults?.nodes[x.id]?.params;
+      const tier = mp ? (m.multi ? '▦ ' : '') + TIERS[mp.tier] : '';
+      const note = x.blocked ? $t('не запускается — не пересчитана') : x.keep ? $t('не ведёт к цели — без изменений') : `${$t('точно')} ${num(x.exact, 2)}`;
+      return `<tr class="${x.count !== x.old ? 'chg' : 'same'}"><td>${mr?.outputs?.[0] ? iconHtml(mr.outputs[0], this.iconDataset(mr), 'small') : ''}</td><td class="bname"><a href="#" data-sel-node="${x.id}">${esc(nodeLabel(p, x.id))}</a><br><small>${esc(tier)} · ${note}</small></td>
+        <td class="num">${x.old}</td><td class="num">→</td><td class="num"><b>${x.count}</b></td></tr>`;
+    };
+    const srow = s => `<tr class="${s.need != null && s.old < s.need * (1 - 1e-6) ? 'short' : ''}"><td>${iconHtml(s.res, ds, 'small')}</td><td class="bname"><a href="#" data-sel-node="${s.id}">${esc(nodeLabel(p, s.id))}</a><br><small>${esc(nm(s.res))}</small></td>
+      <td class="num">${rate(s.old, s.res?.kind)}</td><td class="num">→</td><td class="num"><b>${s.need == null ? '—' : rate(s.need, s.res?.kind)}</b></td></tr>`;
+    const short = P.sources.filter(s => s.need != null && s.old < s.need * (1 - 1e-6));
+    const reached = v => v >= target.rate * (1 - 1e-6);
+    const m = openModal(`<h3>🎯 ${$t('План под цель')}</h3>
+      <div class="resline">${iconHtml(e, ds, 'small')} <b>${esc(nm(e))}</b> — ${$t('нужно')} <b>${rate(target.rate, k)}</b> ${$t('на выходе')} «${esc(nodeLabel(p, n.id))}»</div>
+      <div class="stats">
+        <div class="stat"><div class="v">${rate(P.before, k)}</div><div class="k">${$t('Сейчас')}</div></div>
+        <div class="stat ${reached(P.achieved) ? 'ok' : 'bad'}"><div class="v">${rate(P.achieved, k)}</div><div class="k">${$t('По плану')}</div></div>
+        <div class="stat"><div class="v">${changed.length}</div><div class="k">${$t('Машин меняется')}</div></div>
+        <div class="stat energy" title="${$t('было')} ${num(P.euBefore)}"><div class="v">${num(P.euAfter)}</div><div class="k">EU/t ${$t('на полной')}</div></div>
+      </div>
+      ${P.converged ? '' : `<div class="note warn">${$t('Расчёт не сошёлся полностью — проверьте результат после применения.')}</div>`}
+      <h4>${$t('Машины')}</h4><table class="io plan">${P.rows.map(mrow).join('') || `<tr><td>${$t('нет')}</td></tr>`}</table>
+      ${P.gens.length ? `<h4>${$t('Генераторы')}</h4><table class="io plan">${P.gens.map(g => `<tr class="${g.count !== g.old ? 'chg' : 'same'}"><td></td><td class="bname"><a href="#" data-sel-node="${g.id}">${esc(nodeLabel(p, g.id))}</a><br><small>${$t('нужно на полной')} ${num(g.request)} EU/t · ${$t('дадут')} ${num(g.capacity)} EU/t</small></td>
+        <td class="num">${g.old}</td><td class="num">→</td><td class="num"><b>${g.count}</b></td></tr>`).join('')}</table>` : ''}
+      ${P.sources.length ? `<h4>${$t('Источники')}</h4><table class="io plan">${P.sources.map(srow).join('')}</table>
+        <label class="chk"><input type="checkbox" data-setsrc ${short.length ? 'checked' : ''}> ${$t('Поставить источникам нужную подачу')}</label>
+        ${short.length ? `<div class="note small warn">${$t('Источников с нехваткой')}: ${short.length}. ${$t('Если их оставить как есть, линия даст')} <b>${rate(P.achievedKeep, k)}</b>.</div>` : ''}` : ''}
+      ${P.blocks.length ? `<div class="note small">${$t('Блоки (▦) не пересчитываются — откройте блок и задайте цель внутри.')}</div>` : ''}
+      <div class="note small">${$t('Число машин округлено вверх до целых; источникам ставится ровно то, что нужно для цели, поэтому лишние машины немного простаивают. Генераторов — столько, чтобы хватило всем машинам на полной мощности (с потерями в кабелях). Кабели не меняются — после применения проверьте вкладку «Проблемы».')}</div>
+      <div class="btnrow"><button data-apply class="primary">${$t('Применить')}</button><button data-cancel>${$t('Отмена')}</button></div>`, 'wide plan');
+    m.el.addEventListener('click', ev => {
+      const t = ev.target;
+      if (t.dataset.selNode) { ev.preventDefault(); m.close(); this.select({ type: 'node', id: t.dataset.selNode }); return; }
+      if (t.dataset.cancel != null) m.close();
+      if (t.dataset.apply != null) {
+        const setSrc = !!m.el.querySelector('[data-setsrc]')?.checked;
+        m.close();
+        this.mutate(() => {
+          for (const x of [...P.rows, ...P.gens]) { const q = M.node(this.root, x.id); if (q) q.count = x.count; }
+          if (setSrc) for (const s of P.sources) { const q = M.node(this.root, s.id); if (q && s.need != null) q.rate = s.need; }
+          this.root.target = { node: target.node, port: target.port, rate: target.rate };
+        });
+        this.toast($t('План применён — отменить: Ctrl+Z'));
       }
     });
   }
@@ -488,7 +596,7 @@ class App {
       let dropped = 0;
       this.mutate(p => {
         const n = M.node(p, id);
-        for (const k of ['recipeId', 'tier', 'oc', 'perfectOc', 'cycleOverride', 'oreChoice']) delete n[k];
+        for (const k of ['recipeId', 'tier', 'oc', 'perfectOc', 'cycleOverride', 'oreChoice', 'multi', 'hatches', 'parallel', 'speedPct', 'euPct', 'coil', 'heat']) delete n[k];
         Object.assign(n, { label: 'Генератор', amps: 1, count: n.count ?? 1, efficiency: null, gen: null }, props);
         const outs = new Set((n.fuel?.outputs || []).map((_, i) => 'o' + i));
         p.edges = p.edges.filter(e => {
@@ -930,6 +1038,9 @@ class App {
     const lang = document.getElementById('lang');
     lang.value = getLang();
     lang.onchange = () => { setLang(lang.value); store.set(LANG, lang.value); this.catalog.rerender(); this.changed(); };
+    const arm = document.getElementById('armslots');
+    arm.checked = this.showArmSlots;
+    arm.onchange = () => { this.showArmSlots = arm.checked; prefs.setArmSlots(arm.checked); this.canvas.render(); };
     const en = document.getElementById('energyOn');
     en.onchange = () => this.setEnergy(en.checked);
     document.body.addEventListener('click', async e => {
@@ -968,6 +1079,7 @@ class App {
   redo() { const p = this.history.forward(this.root); if (p) { const path = this.path; this.root = p; this.path = path; this.selection = null; this.changed({ history: false }); } }
 
   bindKeys() {
+    window.addEventListener('focus', () => this.refreshStatus().catch(() => {}));
     window.addEventListener('pointermove', e => { this.hover = e.target; this.lastMouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
     window.addEventListener('keydown', e => {
       if (e.target.closest('input,textarea,select')) return;

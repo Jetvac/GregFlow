@@ -2,12 +2,14 @@
 import { $t } from './i18n.js';
 import { api } from './api.js';
 import { esc, iconHtml, TIERS, nm } from './fmt.js';
+import { draggable } from './ui.js';
 
 export function openModal(html, cls = '') {
   const wrap = document.createElement('div');
   wrap.className = 'modal-wrap';
   wrap.innerHTML = `<div class="modal ${cls}"><button class="mclose" title="${$t("Закрыть")}">✕</button>${html}</div>`;
   document.body.appendChild(wrap);
+  draggable(wrap.querySelector('.modal'));
   const close = () => wrap.remove();
   wrap.querySelector('.mclose').onclick = close;
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });

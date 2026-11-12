@@ -370,8 +370,34 @@ class Api(unittest.TestCase):
         self.assertEqual(s, 403)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class Versions(unittest.TestCase):
+    def test_page_and_server_versions_match(self):
+        """The page warns «restart the planner» when its version differs from the server's."""
+        import re
+        js = open(os.path.join(ROOT, "web", "js", "api.js"), encoding="utf-8").read()
+        m = re.search(r"CLIENT_VERSION = '([^']+)'", js)
+        self.assertIsNotNone(m)
+        self.assertEqual(m.group(1), app.APP_VERSION)
+
+    def test_fresh_server_is_not_stale(self):
+        self.assertEqual(app._code_stamp(), app._CODE_AT_START)
+
+
+class MachineSlots(unittest.TestCase):
+    """Robot arm slot numbers rely on the slot counts taken from the GT source."""
+
+    def test_table_known_machines(self):
+        P = app.Planner(ROOT)
+        d = P.machine_slots()
+        self.assertEqual(d["tag"], "5.09.51.482")
+        self.assertEqual(d["otherSlotCount"], 5)
+        m = d["machines"]
+        self.assertGreater(len(m), 400)
+        # Basic Assembling Machine (LV): 6 inputs, 1 output; Advanced (MV): 9 inputs
+        self.assertEqual((m["211"]["tier"], m["211"]["inputs"], m["211"]["outputs"]), (1, 6, 1))
+        self.assertEqual(m["212"]["inputs"], 9)
+        # Basic Wiremill: 2 inputs, 1 output
+        self.assertEqual((m["351"]["inputs"], m["351"]["outputs"]), (2, 1))
 
 
 class SetupFromUi(unittest.TestCase):
@@ -415,3 +441,7 @@ class SetupFromUi(unittest.TestCase):
     def test_real_data_present(self):
         from server import setup
         self.assertEqual(setup.missing_files(os.path.join(ROOT, "data")), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

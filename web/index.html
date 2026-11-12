@@ -8,43 +8,59 @@
 </head>
 <body>
 <header id="toolbar">
-  <div class="brand" title="GTNH">GregFlow</div>
+  <div class="brand" title="GTNH"><span class="logo">⚙</span>GregFlow</div>
   <div class="tbgroup">
-    <button data-tb="new" title="Новая схема">Новая</button>
-    <button data-tb="open" title="Открыть из папки projects/">Открыть</button>
-    <button data-tb="save" title="Сохранить в projects/ (Ctrl+S)">Сохранить</button>
-    <button data-tb="export" title="Скачать файл схемы">Экспорт</button>
-    <button data-tb="import" title="Загрузить файл схемы">Импорт</button>
-    <button data-tb="png" title="Сохранить картинку схемы (PNG)">PNG</button>
-    <button data-tb="demo" title="Пример с условными значениями источников">Демо</button>
+    <div class="menu">
+      <button data-menu title="Файл схемы: создать, открыть, сохранить, импорт и экспорт">Файл <span class="caret">▾</span></button>
+      <div class="mpop">
+        <button data-tb="new"><i>＋</i><span>Новая схема</span></button>
+        <button data-tb="open"><i>📂</i><span>Открыть…</span><kbd>Ctrl+O</kbd></button>
+        <button data-tb="save"><i>💾</i><span>Сохранить</span><kbd>Ctrl+S</kbd></button>
+        <hr>
+        <button data-tb="import"><i>⭱</i><span>Импорт файла…</span></button>
+        <button data-tb="export"><i>⭳</i><span>Экспорт файла</span></button>
+        <button data-tb="png"><i>🖼</i><span>Картинка PNG</span></button>
+        <hr>
+        <button data-tb="demo"><i>🧪</i><span>Демо-схема</span></button>
+      </div>
+    </div>
+    <div class="menu">
+      <button data-menu title="Добавить узел на схему">Добавить <span class="caret">▾</span></button>
+      <div class="mpop">
+        <button data-tb="splitter"><i>⑂</i><span>Разветвитель</span></button>
+        <button data-tb="merger"><i>⋈</i><span>Слияние</span></button>
+        <button data-tb="sink"><i>▣</i><span>Склад</span></button>
+        <button data-tb="generator"><i>⚡</i><span>Генератор</span></button>
+        <hr class="blkonly">
+        <button data-tb="gin" class="blkonly"><i>⇥</i><span>Вход блока</span></button>
+        <button data-tb="gout" class="blkonly"><i>⇤</i><span>Выход блока</span></button>
+        <div class="mnote">Рецепт: перетащите из каталога слева или тяните связь от порта в пустое место</div>
+      </div>
+    </div>
+    <div class="menu">
+      <button data-menu title="Язык, названия, единицы скорости">Вид <span class="caret">▾</span></button>
+      <div class="mpop mform">
+        <label>Язык интерфейса <select id="uilang"><option value="ru">Русский</option><option value="en">English</option></select></label>
+        <label>Названия предметов и машин <select id="lang"><option value="ru">русские</option><option value="en">английские</option></select></label>
+        <label>Единицы скорости <select id="unit"><option value="t">за тик</option><option value="s">в секунду</option><option value="min">в минуту</option><option value="h">в час</option></select></label>
+        <label class="mchk" title="Маленькие номера у слотов машин GT: какой номер слота выставить на роборуке"><input type="checkbox" id="armslots"> <span>Номера слотов для роборук</span></label>
+      </div>
+    </div>
   </div>
-  <div class="tbgroup">
+  <div class="tbgroup icons">
     <button id="undo" data-tb="undo" title="Отменить (Ctrl+Z)">↶</button>
     <button id="redo" data-tb="redo" title="Повторить (Ctrl+Y)">↷</button>
     <button data-tb="fit" title="Вписать схему (F)">⤢</button>
     <button data-tb="arrange" title="Расставить узлы по потоку слева направо (L); при выделении — только выделенные">⇶</button>
   </div>
   <div class="tbgroup">
-    <button data-tb="splitter" title="Добавить разветвитель">+ Разветвитель</button>
-    <button data-tb="merger" title="Добавить слияние">+ Слияние</button>
-    <button data-tb="sink" title="Добавить склад">+ Склад</button>
-    <button data-tb="generator" title="Добавить генератор (включает учёт энергии)">+ Генератор</button>
-  </div>
-  <div class="tbgroup">
     <button data-tb="group" title="Объединить выделенные узлы в блок (Ctrl+G). Выделение: Ctrl/Shift + щелчок или Shift + рамка">▦ В блок</button>
-    <button data-tb="gin" class="blkonly" title="Добавить вход блока">+ Вход блока</button>
-    <button data-tb="gout" class="blkonly" title="Добавить выход блока">+ Выход блока</button>
-  </div>
-  <div class="tbgroup">
     <label class="tbchk" title="Учитывать энергию: генераторы, кабели, потери. Выключено — схема считается без энергии"><input type="checkbox" id="energyOn"> ⚡ Энергия</label>
-    <button data-tb="machines" title="Сводный список всех машин, генераторов и кабелей схемы">☰ Список машин</button>
+    <button data-tb="machines" title="Отчёт по схеме: машины, генераторы, кабели и баланс ресурсов">☰ Отчёт</button>
   </div>
-  <div class="tbgroup"><label title="Язык интерфейса"><span class="tbl">Интерфейс</span> <select id="uilang"><option value="ru">Русский</option><option value="en">English</option></select></label></div>
-  <div class="tbgroup"><label title="Язык названий предметов и машин"><span class="tbl">Названия</span> <select id="lang"><option value="ru">русские</option><option value="en">английские</option></select></label></div>
-  <div class="tbgroup"><label title="Единицы скорости"><span class="tbl">Единицы</span> <select id="unit"><option value="t">за тик</option><option value="s">в секунду</option><option value="min">в минуту</option><option value="h">в час</option></select></label></div>
-  <div class="tbgroup"><button data-tb="setup" title="Данные рецептов, язык, папка Minecraft">⚙ Настройка</button></div>
   <button id="probs" class="badge warn" data-tb="probs" hidden></button>
   <div id="badges"></div>
+  <button class="tbset" data-tb="setup" title="Данные рецептов, язык, папка Minecraft">⚙ Настройка</button>
 </header>
 <main>
   <aside id="catalog" class="panel"></aside>

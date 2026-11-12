@@ -13,6 +13,8 @@ async function req(method, path, body, raw = false) {
   if (!r.ok) throw new Error($tm(data.error) || ('HTTP ' + r.status));
   return learnFrom(data);
 }
+/** Must match APP_VERSION in server/app.py (checked by the tests). */
+export const CLIENT_VERSION = '1.1.0';
 const qs = o => Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
 
 export const api = {
@@ -42,4 +44,5 @@ export const api = {
   setupInstalls: () => req('GET', 'setup/installs'),
   setupMcDir: path => req('POST', 'setup/mcdir', { path }),
   setupSettings: values => req('POST', 'setup/settings', values),
+  machineSlots: () => req('GET', 'machineslots'),
 };
