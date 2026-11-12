@@ -22,7 +22,7 @@ from . import lang as langmod
 from . import energy as energymod
 from . import setup as setupmod
 
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.1.1"
 
 
 def _code_stamp() -> tuple:

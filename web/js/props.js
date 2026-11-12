@@ -62,8 +62,8 @@ export class PropsPanel {
     const { selection: sel, project: p } = this.app;
     if (sel?.type === 'nodes') return this.multiView(sel.ids);
     if (sel?.type === 'node' && findNode(p, sel.id)) return this.nodeView(findNode(p, sel.id));
-    if (this.app.path.length) return this.blockSummary();
     if (sel?.type === 'edge' && findEdge(p, sel.id)) return findEdge(p, sel.id).energy ? this.energyEdgeView(findEdge(p, sel.id)) : this.edgeView(findEdge(p, sel.id));
+    if (this.app.path.length) return this.blockSummary();
     return this.summary();
   }
 
@@ -663,6 +663,9 @@ export class PropsPanel {
       h += `<h4 class="bad">${$t("Затронуто дефицитом (узкое место)")}</h4>${aff.length ? `<ul class="affected">${aff.map(a => `<li>${this.link(a.node)} ${a.util != null ? `${$t("— загрузка")} ${num(a.util * 100, 1)}%` : $t('— получает меньше')}</li>`).join('')}</ul>` : `<div class="note">${$t("Потребитель не замедлен (дефицит перекрыт другими источниками).")}</div>`}
         <div class="note small">${$t("Для полной мощности нужно ещё")} ${rate(s.deficit, k)} «${esc(nm(res))}».</div>`;
     }
+    h += `<h4>${$t("На схеме")}</h4><label>${$t("Как рисовать связь")}
+        <select data-f="view"><option value="" ${!e.view ? 'selected' : ''}>${$t("Как в меню «Вид»")}</option><option value="line" ${e.view === 'line' ? 'selected' : ''}>${$t("Линией")}</option><option value="tag" ${e.view === 'tag' ? 'selected' : ''}>${$t("Метками у концов")}</option></select></label>
+      <div class="note small">${$t("Метки убирают длинную линию: у входа видно, откуда идёт ресурс, у выхода — сколько связей. Наведите на метку — линия появится.")}</div>`;
     h += `<div class="btnrow"><button data-act="deledge" class="danger">${$t("Удалить связь")}</button></div>`;
     this.el.innerHTML = h;
   }
@@ -737,6 +740,7 @@ export class PropsPanel {
         const e = findEdge(q, sel.id);
         if (f === 'sharemode') e.share = t.value === 'fixed' ? (e.share ?? 70) : null;
         if (f === 'share') e.share = Math.max(0, Math.min(100, +t.value || 0));
+        if (f === 'view') { if (t.value) e.view = t.value; else delete e.view; }
       });
     }
   }

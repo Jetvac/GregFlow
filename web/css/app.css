@@ -225,6 +225,13 @@ table.io.ed input[type=number] { width: 80px; }
 .ntier { background: #2f6fb3; color: #fff; border-radius: 3px; padding: 0 5px; font-size: 11px; }
 .nloop { color: #0f6b6b; font-size: 13px; }
 .elabel.loop { border-style: dashed; }
+path.edge.ghost { display: none; opacity: .85; }
+path.edge.ghost.peek { display: inline; stroke-width: 3; }
+path.edge.tagstub { stroke-width: 3; }
+.elabel.etag { border-radius: 4px; border-style: dashed; color: #c9ccd2; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.elabel.etag.src { border-style: solid; font-weight: 600; }
+.elabel.etag.deficit { border-style: solid; }
+#canvas.lod .elabel.etag { display: block; }
 ul.problems li.loop a, ul.problems li.noconverge a { color: #9ff0f0; }
 .elabel .lp { color: #9ff0f0; margin-right: 4px; }
 path.edge.loop { stroke: #3cc6c6; }

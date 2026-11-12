@@ -1041,6 +1041,9 @@ class App {
     const arm = document.getElementById('armslots');
     arm.checked = this.showArmSlots;
     arm.onchange = () => { this.showArmSlots = arm.checked; prefs.setArmSlots(arm.checked); this.canvas.render(); };
+    const tg = document.getElementById('edgetags');
+    tg.value = prefs.edgeTags();
+    tg.onchange = () => { prefs.setEdgeTags(tg.value); this.canvas.renderEdges(); };
     const en = document.getElementById('energyOn');
     en.onchange = () => this.setEnergy(en.checked);
     document.body.addEventListener('click', async e => {

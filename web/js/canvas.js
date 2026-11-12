@@ -284,11 +284,31 @@ export class Canvas {
       if (n) boxes.set(n.id, { x: n.x, y: n.y, w: el.offsetWidth, h: el.offsetHeight });
     }
     let back = 0, lane = 0;
+    const byId = new Map(p.nodes.map(n => [n.id, n]));
+    const tagMode = prefs.edgeTags();
+    const fanout = new Map(); // from port -> tagged links leaving it
     for (const e of p.edges) {
       const a = this.portPos.get(e.from.node + '|' + e.from.port);
       const b = this.portPos.get(e.to.node + '|' + e.to.port);
       if (!a || !b) continue;
       const s = R?.edges[e.id];
+      const selected = sel?.type === 'edge' && sel.id === e.id;
+      if (isTagEdge(e, byId, tagMode) && !selected && !near.has(e.from.node) && !near.has(e.to.node)) {
+        // drawn as two short stubs with tags; the full line appears on hover or when an end is selected
+        const full = curve(a, b);
+        const stub = `M${b.x - 26},${b.y} H${b.x}`;
+        const st = s?.status || '';
+        const fl = s?.resource?.kind === 'fluid' ? 'fluid' : '';
+        paths.push(`<path class="hit" data-edge="${e.id}" d="${stub}"/><path class="edge tagstub ${st} ${fl}" d="${stub}"/><path class="edge ghost ${st} ${fl}" data-ghost="${e.id}" d="${full}"/>`);
+        const k = e.from.node + '|' + e.from.port;
+        if (!fanout.has(k)) fanout.set(k, { a, node: e.from.node, ids: [], bad: 0 });
+        const f = fanout.get(k); f.ids.push(e.id); if (st === 'deficit') f.bad++;
+        let t = esc(lbl(nodeLabel(p, e.from.node)) || '');
+        if (s && st === 'deficit') t = `⚠ ${t} <em>−${rate(s.deficit, s.resource?.kind)}</em>`;
+        const tip = $t('Связь показана меткой. Наведите — видна линия; щелчок — выбрать связь.') + '\n' + nodeLabel(p, e.from.node) + ' → ' + nodeLabel(p, e.to.node);
+        labels.push({ x: b.x - 30, y: b.y, w: 0, align: 'r', html: `<div class="elabel etag ${st}" data-edge="${e.id}" data-peek="${e.id}" title="${esc(tip)}" style="left:{X}px;top:{Y}px">↤ ${t}</div>` });
+        continue;
+      }
       let d, m;
       if (e.energy) ({ d, m } = pipe(a, b, boxes.get(e.from.node), boxes.get(e.to.node), lane++));
       else if (b.x < a.x + 40) {
@@ -298,7 +318,6 @@ export class Canvas {
         d = `M${a.x},${a.y} C${a.x + 60},${a.y} ${a.x + 60},${yb} ${a.x},${yb} L${b.x},${yb} C${b.x - 60},${yb} ${b.x - 60},${b.y} ${b.x},${b.y}`;
         m = { x: (a.x + b.x) / 2, y: yb };
       } else { d = curve(a, b); m = mid(a, b); }
-      const selected = sel?.type === 'edge' && sel.id === e.id;
       const show = !quiet || selected || near.has(e.from.node) || near.has(e.to.node) || s?.status === 'deficit' || s?.warnings?.length;
       const cls = `edge ${s?.status || ''} ${s?.resource?.kind === 'fluid' ? 'fluid' : ''} ${e.energy ? 'energy' : ''} ${selected ? 'selected' : ''}`;
       const tip = !s ? '' : e.energy ? `⚡ ${num(s.offered)} / ${num(s.demand)} EU/t` : `${nm(s.resource)}: ${s.demand === Infinity ? rate(s.flow, s.resource?.kind) : rate(s.offered, s.resource?.kind) + ' / ' + rate(s.demand, s.resource?.kind)}`;
@@ -319,11 +338,20 @@ export class Canvas {
         labels.push({ x: m.x, y: m.y, w: 0, html: `<div class="elabel ${s.status} ${s.loop ? 'loop' : ''} ${selected ? 'selected' : ''}" data-edge="${e.id}" style="left:{X}px;top:{Y}px">${loop}${share}${t}</div>` });
       }
     }
+    for (const f of fanout.values()) {
+      const { a } = f;
+      paths.push(`<path class="edge tagstub ${f.bad ? 'deficit' : ''}" d="M${a.x},${a.y} H${a.x + 26}"/>`);
+      labels.push({ x: a.x + 30, y: a.y, w: 0, align: 'l', html: `<div class="elabel etag src ${f.bad ? 'deficit' : ''}" data-node-sel="${f.node}" data-peek="${f.ids.join(' ')}" title="${esc($t('Связи показаны метками. Наведите — видны линии; щелчок — выбрать узел и показать все его связи.'))}" style="left:{X}px;top:{Y}px">↦ ×${f.ids.length}${f.bad ? ` <em>⚠${f.bad}</em>` : ''}</div>` });
+    }
     this.elayer.innerHTML = paths.join('');
     // render once to measure widths, then push overlapping labels apart vertically
     this.labels.innerHTML = labels.map(l => l.html.replace('{X}', l.x).replace('{Y}', l.y)).join('');
     const els = [...this.labels.children];
-    els.forEach((el, i) => { labels[i].w = el.offsetWidth; labels[i].h = el.offsetHeight || 18; labels[i].el = el; });
+    els.forEach((el, i) => {
+      const l = labels[i];
+      l.w = el.offsetWidth; l.h = el.offsetHeight || 18; l.el = el;
+      if (l.align) { l.x += l.align === 'r' ? -l.w / 2 : l.w / 2; el.style.left = l.x + 'px'; }
+    });
     const placed = [];
     for (const l of [...labels].sort((a, b) => a.y - b.y || a.x - b.x)) {
       let moved = true, guard = 0;
@@ -378,6 +406,8 @@ export class Canvas {
       const portEl = t.closest('.port');
       const nodeEl = t.closest('.node');
       const edgeId = t.dataset?.edge || t.closest('.elabel')?.dataset.edge;
+      const tagNode = t.closest('[data-node-sel]')?.dataset.nodeSel;
+      if (ev.button === 0 && tagNode) { this.app.select({ type: 'node', id: tagNode }); return; }
       if (t.closest('[data-enter]')) { ev.preventDefault(); this.app.enterBlock(t.closest('[data-enter]').dataset.enter); return; }
       if (ev.button === 0 && portEl) return this.startConnect(ev, portEl);
       if (ev.button === 0 && nodeEl && (ev.ctrlKey || ev.metaKey || ev.shiftKey)) { this.app.toggleSelect(nodeEl.dataset.id); return; }
@@ -399,6 +429,14 @@ export class Canvas {
       const w = this.toWorld(ev.clientX, ev.clientY);
       this.app.addRecipeNode(id, w);
     });
+    // hovering a link tag shows the full line(s) it stands for
+    const peek = (ev, on) => {
+      const ids = ev.target.closest?.('[data-peek]')?.dataset.peek;
+      if (!ids) return;
+      for (const id of ids.split(' ')) this.elayer.querySelector(`[data-ghost="${id}"]`)?.classList.toggle('peek', on);
+    };
+    el.addEventListener('mouseover', ev => peek(ev, true));
+    el.addEventListener('mouseout', ev => peek(ev, false));
     new ResizeObserver(() => this.applyView()).observe(el);
   }
 
@@ -521,6 +559,17 @@ function pipe(a, b, ba, bb, lane) {
   const x1 = a.x + 18 + off, x2 = b.x - 18 - off;
   const yb = Math.max(ba ? ba.y + ba.h : a.y, bb ? bb.y + bb.h : b.y) + 24 + off;
   return { d: `M${a.x},${a.y} H${x1} V${yb} H${x2} V${b.y} H${b.x}`, m: { x: (x1 + x2) / 2, y: yb } };
+}
+
+/** Should this link be drawn as tags? Per-link choice first, then the View setting:
+ *  'fuel' — fuel into generators, 'sources' — also everything leaving a source or block input. */
+export function isTagEdge(e, byId, mode) {
+  if (e.energy || e.view === 'line') return false;
+  if (e.view === 'tag') return true;
+  if (mode === 'none') return false;
+  if (byId.get(e.to.node)?.type === 'generator' && e.to.port === 'f') return true;
+  const t = byId.get(e.from.node)?.type;
+  return mode === 'sources' && (t === 'source' || t === 'gin');
 }
 
 function curve(a, b) {

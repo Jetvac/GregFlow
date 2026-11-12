@@ -308,7 +308,7 @@ export function groupNodes(p, ids, size) {
     if (!res) continue;
     const g = addGout(e.from.node + '|' + e.from.port, res);
     if (!inner.edges.some(x => x.to.node === g.id && x.from.node === e.from.node && x.from.port === e.from.port))
-      inner.edges.push({ id: nid(inner, 'e'), from: { ...e.from }, to: { node: g.id, port: 'in' }, share: e.share ?? null, ...(e.energy ? { energy: true, cable: e.cable ?? null, length: e.length ?? 0 } : {}) });
+      inner.edges.push({ id: nid(inner, 'e'), from: { ...e.from }, to: { node: g.id, port: 'in' }, share: e.share ?? null, ...(e.view ? { view: e.view } : {}), ...(e.energy ? { energy: true, cable: e.cable ?? null, length: e.length ?? 0 } : {}) });
     newOuter.push({ ...e, from: { node: block.id, port: e.energy ? 'eo' : g.id } });
   }
   // unconnected machine inputs/outputs inside become block inputs/outputs
@@ -354,7 +354,7 @@ export function ungroupNode(p, id) {
   const newEdges = [];
   const mk = (from, to, extra = {}) => newEdges.push({ id: nid(p, 'e'), from, to, share: null, ...extra });
   for (const e of inner.edges) {
-    if (map.has(e.from.node) && map.has(e.to.node)) mk({ node: map.get(e.from.node), port: e.from.port }, { node: map.get(e.to.node), port: e.to.port }, { share: e.share ?? null, ...(e.energy ? { energy: true, cable: e.cable ?? null, length: e.length ?? 0 } : {}) });
+    if (map.has(e.from.node) && map.has(e.to.node)) mk({ node: map.get(e.from.node), port: e.from.port }, { node: map.get(e.to.node), port: e.to.port }, { share: e.share ?? null, ...(e.view ? { view: e.view } : {}), ...(e.energy ? { energy: true, cable: e.cable ?? null, length: e.length ?? 0 } : {}) });
   }
   const keep = [];
   for (const e of p.edges) {
