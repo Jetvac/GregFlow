@@ -22,7 +22,7 @@ from . import lang as langmod
 from . import energy as energymod
 from . import setup as setupmod
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 MAX_UPLOAD = 200 * 1024 * 1024
 MIME = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
         ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
