@@ -2,6 +2,7 @@
 import { $t } from './i18n.js';
 import { api } from './api.js';
 import { esc, num, slotHtml, iconHtml, seconds, TIERS, nm, mname } from './fmt.js';
+import { prefs } from './prefs.js';
 
 export function recipeCardHtml(r, ds, opts = {}) {
   const ins = r.inputs.map(e => slotHtml(e, ds)).join('');
@@ -56,11 +57,26 @@ export class CatalogPanel {
   /** Redraw after the name language changes. */
   rerender() { if (this.state) this.loadRecipes(); else this.search(); }
 
-  setMode(m) {
+  setMode(m, { search = true } = {}) {
     this.mode = m;
     for (const b of this.el.querySelectorAll('.ptabs button')) b.classList.toggle('on', b.dataset.mode === m);
     this.input.placeholder = m === 'machine' ? $t('Поиск машины / карты рецептов…') : m === 'custom' ? $t('Фильтр своих рецептов…') : $t('Поиск: предмет, жидкость или ID (рус./англ.)…');
-    this.search();
+    if (search) this.search();
+  }
+
+  /** Recipes that make (production) or use (consumption) a resource — R / U keys. */
+  showGoods(id, mode) {
+    this.setMode('goods', { search: false });
+    return this.openGoods(id, mode).catch(e => this.app.toast(e.message, 'error'));
+  }
+
+  /** Favourite and recently opened resources (shown while the search box is empty). */
+  quickListsHtml() {
+    const ds = this.app.iconDataset();
+    const row = g => `<div class="li goods" data-goods="${esc(g.id)}">${iconHtml(g, ds, 'small')}<span>${esc(nm(g))}${g.kind === 'fluid' ? ` <i class="fl">${$t("жидк.")}</i>` : ''}</span></div>`;
+    const favs = prefs.favs(), rec = prefs.recent().filter(g => !favs.some(f => f.id === g.id));
+    return (favs.length ? `<h5 class="qh">★ ${$t("Избранное")}</h5><div class="list">${favs.map(row).join('')}</div>` : '')
+      + (rec.length ? `<h5 class="qh">${$t("Недавние")}</h5><div class="list">${rec.map(row).join('')}</div>` : '');
   }
 
   setPending(info) {
@@ -80,7 +96,7 @@ export class CatalogPanel {
       this.body.innerHTML = `<div class="list">${r.machines.map(m => `<div class="li" data-machine="${esc(m.name)}"><span>${esc(mname(m))}</span><small>${esc(mname(m) !== m.name ? m.name + ' · ' : '')}${esc(m.category)} · ${m.recipes}</small></div>`).join('')}</div>`;
       return;
     }
-    if (!q) { this.body.innerHTML = `<div class="note">${$t("Введите название предмета или жидкости по-русски или по-английски, например")} <i>${$t("пыль магния")}</i>, <i>${$t("кислород")}</i>, <i>oxygen</i>${$t(", или ID вида")} <code>i:minecraft:sand:0</code>${$t(". Слова можно писать в любом порядке и форме.")}</div>`; return; }
+    if (!q) { this.body.innerHTML = this.quickListsHtml() + `<div class="note">${$t("Введите название предмета или жидкости по-русски или по-английски, например")} <i>${$t("пыль магния")}</i>, <i>${$t("кислород")}</i>, <i>oxygen</i>${$t(", или ID вида")} <code>i:minecraft:sand:0</code>${$t(". Слова можно писать в любом порядке и форме.")}</div>`; return; }
     const r = await api.search(q);
     const ds = this.app.iconDataset();
     this.body.innerHTML = r.goods.length ? `<div class="list">${r.goods.map(g => `<div class="li goods" data-goods="${esc(g.id)}">${iconHtml(g, ds, 'small')}<span>${esc(nm(g))}${g.kind === 'fluid' ? ` <i class="fl">${$t("жидк.")}</i>` : ''}</span><small title="${$t("производится / потребляется")}">▲${g.producedBy} ▼${g.consumedBy}</small></div>`).join('')}</div>`
@@ -92,6 +108,7 @@ export class CatalogPanel {
     this.state = { view: 'goods', id, mode, machine: null, offset: 0, q: '', side: 'any', maxTier: keep?.maxTier ?? '' };
     const g = await api.goods(id);
     this.state.goods = g;
+    prefs.addRecent(g);
     await this.loadRecipes();
   }
 
@@ -128,7 +145,7 @@ export class CatalogPanel {
         const g = s.goods;
         const machines = Object.entries(res.machines || {}).sort((a, b) => b[1] - a[1]);
         head = `<div class="ghead">${iconHtml(g, ds)}<div><b>${esc(nm(g))}</b><br><small>${nm(g) !== g.name ? esc(g.name) + ' · ' : ''}${esc(g.id)}${g.kind === 'fluid' ? $t(' · жидкость') + (g.isGas ? $t(' (газ)') : '') : ''}</small></div></div>
-          <div class="gactions"><button data-act="source">${$t("+ Источник")}</button><button data-act="back">${$t("← к поиску")}</button></div>
+          <div class="gactions"><button data-act="source">${$t("+ Источник")}</button><button data-act="fav" title="${$t("Избранное: показывается в начале поиска")}">${prefs.isFav(g.id) ? '★' : '☆'}</button><button data-act="back">${$t("← к поиску")}</button></div>
           <div class="ptabs small"><button data-gmode="production" class="${s.mode === 'production' ? 'on' : ''}">${$t("Производится (")}${g.producedBy})</button><button data-gmode="consumption" class="${s.mode === 'consumption' ? 'on' : ''}">${$t("Потребляется (")}${g.consumedBy})</button></div>
           ${this.filterHtml(s, total)}
           ${machines.length > 1 || s.machine ? `<select class="mfilter"><option value="">${$t("Все машины (")}${machines.reduce((a, m) => a + m[1], 0)})</option>${machines.map(([m, c]) => `<option value="${esc(m)}" ${m === s.machine ? 'selected' : ''}>${esc(m)} (${c})</option>`).join('')}</select>` : ''}`;
@@ -183,6 +200,7 @@ export class CatalogPanel {
       }
       if (act === 'back') { this.state = null; return this.search(); }
       if (act === 'source') return this.app.addSource(this.state.goods);
+      if (act === 'fav') { prefs.toggleFav(this.state.goods); t.textContent = prefs.isFav(this.state.goods.id) ? '★' : '☆'; return; }
       if (act === 'newcustom') return this.app.editCustom(null, false);
       if (act === 'importcustom') return this.app.importCustomFile();
       if (act === 'exportcustom') return this.app.exportCustom();

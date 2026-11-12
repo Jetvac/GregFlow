@@ -38,7 +38,7 @@
 // Inner machines without an energy link are powered through the block's ⚡ input; when that
 // input is short they slow down by the delivered/needed ratio. Energy outputs of a block are
 // inner generators linked to an energy "gout"; the block then acts as a generator outside.
-import { $t, lbl } from './i18n.js';
+import { $t, lbl, uiLang } from './i18n.js';
 import { ports, recipeOf, ENERGY, energyOn, isEnergyRes } from './model.js';
 import { TIER_V, nm, mname } from './fmt.js';
 
@@ -743,7 +743,7 @@ export function solve(p, opts = {}) {
   return result;
 }
 
-const num0 = v => (Math.round(v * 100) / 100).toLocaleString('ru-RU');
+const num0 = v => (Math.round(v * 100) / 100).toLocaleString(uiLang() === 'en' ? 'en-US' : 'ru-RU');
 
 function label(n, r) {
   if (n.type === 'machine') return (lbl(n.label) || mname(r?.machine) || $t('Машина')) + ' ×' + (n.count ?? 1);

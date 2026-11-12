@@ -2,10 +2,26 @@
 import { $t, lbl } from './i18n.js';
 import { esc, num, rate, slotHtml, iconHtml, seconds, TIERS, nm, mname, energySlotHtml } from './fmt.js';
 import { ports, recipeOf, checkConnect, node as findNode, resolveInput, energyOn, energyPorts, isEnergyRes } from './model.js';
+import { whyLimited, nodeLabel } from './fixes.js';
+import { prefs } from './prefs.js';
 
 // energy is delivered on demand: a ⚡ input is short only when it got less than it asked for
 const eShort = x => x.short != null ? x.short > 1e-9 * Math.max(1, x.need) : x.supplied < x.need * (1 - 1e-7);
 const eText = x => eShort(x) ? $t('есть ') + num(x.supplied) : $t('берёт ') + num(x.used ?? x.supplied);
+
+/** Tooltip for a short input: how much is missing and what limits the supplier. */
+function shortWhy(p, R, nodeId, pid, x, kind) {
+  if (!x || !x.connected || x.supplied >= x.need * (1 - 1e-7)) return '';
+  let t = `${$t('Не хватает')} ${rate(x.need - x.supplied, kind)} (${$t('нужно')} ${rate(x.need, kind)}, ${$t('приходит')} ${rate(x.supplied, kind)})`;
+  const ins = p.edges.filter(e => e.to.node === nodeId && e.to.port === pid);
+  if (ins.length === 1) {
+    const from = findNode(p, ins[0].from.node);
+    const w = from && whyLimited(p, R, from.id);
+    if (w) t += `\n${nodeLabel(p, from.id)}: ${w}`;
+    else if (from?.type === 'source') t += `\n${$t('Источник')} «${nodeLabel(p, from.id)}» ${$t('даёт')} ${rate(from.rate, kind)}`;
+  }
+  return esc(t);
+}
 
 const isSelected = (sel, id) => (sel?.type === 'node' && sel.id === id) || (sel?.type === 'nodes' && sel.ids.includes(id));
 
@@ -16,7 +32,8 @@ export class Canvas {
     this.el = el; this.app = app;
     this.view = { x: 40, y: 40, z: 1 };
     el.innerHTML = `<div class="world"><svg class="edges"><g class="elayer"></g><path class="temp" d=""/></svg><div class="elabels"></div><div class="nlayer"></div></div>
-      <div class="zoomhud"></div><div class="band"></div>`;
+      <div class="zoomhud"></div><div class="band"></div>
+      <div class="canvhud"><button data-lblmode title="${$t('Подписи на связях: все или только там, где проблема (и у выделенного узла). Числа любой связи видны при наведении.')}"></button></div>`;
     this.world = el.querySelector('.world');
     this.svg = el.querySelector('svg.edges');
     this.elayer = el.querySelector('.elayer');
@@ -26,6 +43,10 @@ export class Canvas {
     this.hud = el.querySelector('.zoomhud');
     this.band = el.querySelector('.band');
     this.portPos = new Map();
+    this.lblBtn = el.querySelector('[data-lblmode]');
+    const setLbl = () => { this.lblBtn.textContent = prefs.labels() === 'issues' ? $t('Подписи: только проблемы') : $t('Подписи: все'); };
+    setLbl();
+    this.lblBtn.onclick = () => { prefs.setLabels(prefs.labels() === 'issues' ? 'all' : 'issues'); setLbl(); this.renderEdges(); };
     this.bind();
     this.applyView();
   }
@@ -45,15 +66,29 @@ export class Canvas {
     const g = GRID * z;
     this.el.style.backgroundSize = `${g * 5}px ${g * 5}px, ${g * 5}px ${g * 5}px, ${g}px ${g}px, ${g}px ${g}px`;
     this.el.style.backgroundPosition = `${x}px ${y}px`;
-    this.el.classList.toggle('lod', z < 0.45);
+    this.el.classList.toggle('lod', z < 0.55);
+    this.el.style.setProperty('--iz', Math.min(4, 1 / z).toFixed(3));
     this.hud.textContent = Math.round(z * 100) + '%';
   }
 
   // ---------- rendering ----------
   render() {
     const { project: p, results: R, selection: sel, highlight } = this.app;
+    const hl = this.app.resHighlight ? this.app.nodesWithRes(this.app.resHighlight) : null;
+    const bad = new Set();
+    for (const x of R?.problems || []) {
+      if (x.node) bad.add(x.node);
+      const e = x.edge && p.edges.find(y => y.id === x.edge);
+      if (e) bad.add(e.to.node);
+    }
     const html = [];
-    for (const n of p.nodes) html.push(this.nodeHtml(p, n, R?.nodes[n.id], sel, highlight));
+    for (const n of p.nodes) {
+      let h = this.nodeHtml(p, n, R?.nodes[n.id], sel, highlight);
+      if (!h) continue;
+      if (hl?.has(n.id)) h = h.replace('class="node ', 'class="node hlres ');
+      const i = h.lastIndexOf('</div>');
+      html.push(h.slice(0, i) + this.nsumHtml(p, n, R?.nodes[n.id], bad.has(n.id)) + h.slice(i));
+    }
     this.nlayer.innerHTML = html.join('');
     this.measurePorts();
     this.renderEdges();
@@ -81,9 +116,9 @@ export class Canvas {
         if (x) {
           const ok = x.need <= 0 || x.supplied >= x.need * (1 - 1e-7);
           rc = !x.connected ? 'unfed' : ok ? 'ok' : 'short';
-          txt = `<b>${rate(x.need, e.kind)}</b><small>${x.connected ? $t('есть ') + rate(x.supplied, e.kind) : $t('нет подачи')}</small>`;
+          txt = `<b>${rate(x.need, e.kind)}</b><small>${rc === 'short' ? '⚠ ' : ''}${x.connected ? $t('есть ') + rate(x.supplied, e.kind) : $t('нет подачи')}</small>`;
         }
-        return `<div class="prow in ${rc}"><div class="port in" data-node="${n.id}" data-port="${pid}"></div>${slotHtml(e, rds, { display: e.kind === 'oredict' ? { ...disp, kind: 'item' } : null })}<div class="ptext">${txt}</div></div>`;
+        return `<div class="prow in ${rc}" title="${shortWhy(p, this.app.results, n.id, pid, x, e.kind)}"><div class="port in" data-node="${n.id}" data-port="${pid}"></div>${slotHtml(e, rds, { display: e.kind === 'oredict' ? { ...disp, kind: 'item' } : null })}<div class="ptext">${txt}</div></div>`;
       }).join('');
       let eRow = '';
       if (energyPorts(p) && r.gt?.eut > 0) {
@@ -105,7 +140,8 @@ export class Canvas {
       const foot = gt ? `${mp?.ticks != null ? seconds(mp.ticks) : $t('— с')} · ${mp?.eut != null ? num(mp.eut) + ' EU/t' : '— EU/t'} ${$t("· рецепт")} ${TIERS[mp?.recipeTier ?? 0]}${mp?.ocs ? ` ${$t("· разгон ×")}${mp.ocs}${n.perfectOc ? $t(' (идеальный)') : ''}` : ''}`
         : (n.cycleOverride ? `${num(n.cycleOverride)} ${$t("цикл/мин (вручную)")}` : $t('нет данных о длительности'));
       const u = s?.util;
-      const utilBar = u == null ? '' : `<div class="util ${u < 1 - 1e-7 ? 'low' : ''}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("загрузка")} ${num(u * 100, 1)}%${s.limitedBy ? $t(' · ограничено входом') : ''}</span></div>`;
+      const why = s?.limitedBy ? esc(whyLimited(p, this.app.results, n.id) || '') : '';
+      const utilBar = u == null ? '' : `<div class="util ${u < 1 - 1e-7 ? 'low' : ''}" title="${why}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("загрузка")} ${num(u * 100, 1)}%${s.limitedBy ? $t(' · ограничено входом') : ''}</span></div>`;
       const badge = r.dataset === 'custom' ? `<span class="badge custom" title="${$t("Пользовательский рецепт")}">${$t("свой")}</span>` : '';
       return `<div class="${cls.join(' ')}" data-id="${n.id}" style="${st}">
         <div class="nhead">${crafter ? iconHtml(crafter, rds, 'small') : ''}<span class="ntitle">${esc(lbl(n.label) || mname(r.machine))}</span>${s?.loop ? `<span class="nloop" title="${$t("Узел входит в цикл")} ${s.loop}">↻${s.loop}</span>` : ''}<span class="ntier" title="${$t("Уровень машины")}">${TIERS[mp?.tier ?? 0]}</span><span class="ncount">×${n.count}</span>${badge}</div>
@@ -181,6 +217,15 @@ export class Canvas {
     return '';
   }
 
+  /** Big one-glance summary shown instead of the card details when zoomed out. */
+  nsumHtml(p, n, s, bad) {
+    const u = s?.util;
+    const st = bad ? 'bad' : u != null && u < 1 - 1e-7 ? 'warn' : 'ok';
+    const cnt = n.type === 'machine' || n.type === 'generator' ? ` ×${n.count ?? 1}` : '';
+    const load = u != null ? `${num(u * 100, 0)}%` : n.type === 'source' ? rate(n.rate, n.resource?.kind) : '';
+    return `<div class="nsum ${st}"><b>${esc(nodeLabel(p, n.id))}${cnt}</b>${load ? `<span>${load}${bad ? ' ⚠' : ''}</span>` : bad ? '<span>⚠</span>' : ''}</div>`;
+  }
+
   groupHtml(p, n, s, cls, st, ds) {
     if (s && s.util != null && s.util < 1 - 1e-7) cls.push('throttled');
     const ps = ports(p, n);
@@ -209,7 +254,7 @@ export class Canvas {
       <div class="nhead"><span class="gico">▦</span><span class="ntitle">${esc(lbl(n.label) || $t('Блок'))}</span>${s?.loop ? `<span class="nloop">↻${s.loop}</span>` : ''}<span class="badge blk">${$t("блок")}</span></div>
       <div class="nbody"><div class="ncol">${ins || `<div class="empty">${$t("нет входов")}</div>`}</div><div class="narrow">➜</div><div class="ncol">${outs || `<div class="empty">${$t("нет выходов")}</div>`}</div></div>
       <div class="nfoot">${$t("внутри узлов:")} ${inner}${s?.innerProblems ? ` · <b class="warnc">${$t("проблем:")} ${s.innerProblems}</b>` : ''} · <a href="#" data-enter="${n.id}">${$t("открыть ⤵")}</a></div>
-      ${u == null ? '' : `<div class="util ${u < 1 - 1e-7 ? 'low' : ''}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("загрузка")} ${num(u * 100, 1)}%${s.limitedBy ? $t(' · ограничено входом') : ''}</span></div>`}</div>`;
+      ${u == null ? '' : `<div class="util ${u < 1 - 1e-7 ? 'low' : ''}" title="${s.limitedBy ? esc(whyLimited(p, this.app.results, n.id) || '') : ''}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("загрузка")} ${num(u * 100, 1)}%${s.limitedBy ? $t(' · ограничено входом') : ''}</span></div>`}</div>`;
   }
 
   measurePorts() {
@@ -225,6 +270,8 @@ export class Canvas {
   renderEdges() {
     const { project: p, results: R, selection: sel } = this.app;
     const paths = [], labels = [];
+    const quiet = prefs.labels() === 'issues';
+    const near = new Set(sel?.type === 'node' ? [sel.id] : sel?.type === 'nodes' ? sel.ids : []);
     // node boxes in world coordinates (for routing backward links around them)
     const boxes = new Map();
     for (const el of this.nlayer.querySelectorAll('.node')) {
@@ -247,8 +294,11 @@ export class Canvas {
         m = { x: (a.x + b.x) / 2, y: yb };
       } else { d = curve(a, b); m = mid(a, b); }
       const selected = sel?.type === 'edge' && sel.id === e.id;
+      const show = !quiet || selected || near.has(e.from.node) || near.has(e.to.node) || s?.status === 'deficit' || s?.warnings?.length;
       const cls = `edge ${s?.status || ''} ${s?.resource?.kind === 'fluid' ? 'fluid' : ''} ${e.energy ? 'energy' : ''} ${selected ? 'selected' : ''}`;
-      paths.push(`<path class="hit" data-edge="${e.id}" d="${d}"/>${e.energy ? `<path class="ecase ${selected ? 'selected' : ''}" d="${d}"/>` : ''}<path class="${cls}" d="${d}"/>`);
+      const tip = !s ? '' : e.energy ? `⚡ ${num(s.offered)} / ${num(s.demand)} EU/t` : `${nm(s.resource)}: ${s.demand === Infinity ? rate(s.flow, s.resource?.kind) : rate(s.offered, s.resource?.kind) + ' / ' + rate(s.demand, s.resource?.kind)}`;
+      paths.push(`<path class="hit" data-edge="${e.id}" d="${d}"><title>${esc(tip)}</title></path>${e.energy ? `<path class="ecase ${selected ? 'selected' : ''}" d="${d}"/>` : ''}<path class="${cls}" d="${d}"/>`);
+      if (!show) continue;
       if (s && e.energy) {
         let t = `⚡ ${num(s.offered)} / ${num(s.demand)} EU/t`;
         if (s.status === 'deficit') t += ` <em>−${num(s.deficit)}</em>`;
@@ -258,7 +308,7 @@ export class Canvas {
       } else if (s) {
         const share = e.share != null && e.share !== '' ? `<i>${num(+e.share)}%</i>` : '';
         let t = s.demand === Infinity ? `${rate(s.flow, s.resource?.kind)}` : `${rate(s.offered, s.resource?.kind)} / ${rate(s.demand, s.resource?.kind)}`;
-        if (s.status === 'deficit') t += ` <em>−${rate(s.deficit, s.resource?.kind)}</em>`;
+        if (s.status === 'deficit') t = '⚠ ' + t + ` <em>−${rate(s.deficit, s.resource?.kind)}</em>`;
         else if (s.status === 'surplus') t += ` <em>+${rate(s.surplus, s.resource?.kind)}</em>`;
         const loop = s.loop ? `<b class="lp" title="${$t("Связь внутри цикла")} ${s.loop}">↻</b>` : '';
         labels.push({ x: m.x, y: m.y, w: 0, html: `<div class="elabel ${s.status} ${s.loop ? 'loop' : ''} ${selected ? 'selected' : ''}" data-edge="${e.id}" style="left:{X}px;top:{Y}px">${loop}${share}${t}</div>` });
@@ -319,7 +369,7 @@ export class Canvas {
     el.addEventListener('pointerdown', ev => {
       if (ev.button !== 0 && ev.button !== 1) return;
       const t = ev.target;
-      if (t.closest('input,select,button,textarea')) return;
+      if (t.closest('input,select,button,textarea,.canvhud')) return;
       const portEl = t.closest('.port');
       const nodeEl = t.closest('.node');
       const edgeId = t.dataset?.edge || t.closest('.elabel')?.dataset.edge;

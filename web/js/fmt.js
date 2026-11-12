@@ -1,6 +1,7 @@
 // Formatting, units and icon helpers.
 import { $t } from './i18n.js';
 export const UNITS = {
+  t: { label: $t('/т'), mul: 0.05 },
   s: { label: $t('/с'), mul: 1 },
   min: { label: $t('/мин'), mul: 60 },
   h: { label: $t('/ч'), mul: 3600 },
@@ -83,13 +84,15 @@ export function setAtlasResolver(fn) { atlasFor = fn; }
 export function iconHtml(g, dataset, extra = '') {
   const url = atlasFor(dataset);
   const id = g?.icon;
-  const title = esc((nm(g) || g?.id || '') + (g?.name && nm(g) !== g.name ? '\n' + g.name : ''));
+  const lookup = g?.id && g.kind !== 'energy';
+  const title = esc((nm(g) || g?.id || '') + (g?.name && nm(g) !== g.name ? '\n' + g.name : '') + (lookup ? '\n' + $t('R — рецепты, U — применение') : ''));
+  const gid = lookup ? ` data-gid="${esc(g.id)}"` : '';
   if (url && id != null && id >= 0) {
     const x = (id % 256) * -32, y = Math.floor(id / 256) * -32;
-    return `<div class="icon ${extra}" title="${title}" style="background-image:url('${url}');background-position:${x}px ${y}px"></div>`;
+    return `<div class="icon ${extra}"${gid} title="${title}" style="background-image:url('${url}');background-position:${x}px ${y}px"></div>`;
   }
   const letters = esc((g?.name || '?').replace(/[^A-Za-zА-Яа-я0-9]/g, '').slice(0, 2));
-  return `<div class="icon noicon ${extra}" title="${title}">${letters}</div>`;
+  return `<div class="icon noicon ${extra}"${gid} title="${title}">${letters}</div>`;
 }
 
 export function slotHtml(e, dataset, opts = {}) {
@@ -99,7 +102,7 @@ export function slotHtml(e, dataset, opts = {}) {
   const od = e.kind === 'oredict' ? `<span class="od" title="${$t("Словарь руд: можно выбрать вариант")}">OD</span>` : '';
   const amt = e.amount != null && (fluid || e.amount !== 1) ? `<span class="amt">${esc(amount(e.amount, e.kind))}</span>` : '';
   const g = opts.display || e;
-  return `<div class="slot ${fluid ? 'fluid' : ''} ${opts.cls || ''}" title="${esc(nm(g) + (g.name && nm(g) !== g.name ? '\n' + g.name : '') + '\n' + (g.id || ''))}">${iconHtml(g, dataset)}${amt}${prob}${nc}${od}</div>`;
+  return `<div class="slot ${fluid ? 'fluid' : ''} ${opts.cls || ''}"${g.id ? ` data-gid="${esc(g.id)}"` : ''} title="${esc(nm(g) + (g.name && nm(g) !== g.name ? '\n' + g.name : '') + '\n' + (g.id || ''))}">${iconHtml(g, dataset)}${amt}${prob}${nc}${od}</div>`;
 }
 
 // --- energy slot: NEI-style slot with a pixel lightning bolt and the voltage tier ---

@@ -9,6 +9,20 @@ const GT_T = ['ULV', 'LV', 'MV', 'HV', 'EV', 'IV', 'LuV', 'ZPM', 'UV', 'UHV', 'U
 const vName = v => { const i = GT_V.indexOf(+v); return i >= 0 ? GT_T[i] : ''; };
 const brief = g => ({ kind: g.kind || 'item', id: g.id, name: g.name, nameRu: g.nameRu, icon: g.icon });
 import { machineParams, recipeTier } from './solver.js';
+import { summarize } from './summary.js';
+import { fixesFor, applyFix, whyLimited, machinesForDemand, machinesForSupply } from './fixes.js';
+
+/** Small "?" with an explanation of a GregTech term. */
+const help = t => `<span class="qhelp" title="${esc(t)}">?</span>`;
+const H = {
+  util: () => $t('Загрузка — доля времени, когда машины действительно работают. Меньше 100%, если не хватает какого-то входа или энергии.'),
+  oc: () => $t('Разгон (overclock): машина уровнем выше рецепта за каждый лишний уровень работает в 2 раза быстрее и берёт в 4 раза больше EU/t. Идеальный разгон — в 4 раза быстрее.'),
+  eut: () => $t('EU/t — энергия за тик. В секунде 20 тиков.'),
+  amps: () => $t('Ампер — сколько пакетов энергии за тик идёт по кабелю. Кабель держит ограниченное число ампер, при большем токе он сгорит.'),
+  loss: () => $t('Потери: каждый блок кабеля съедает несколько EU с каждого ампера. Длинный и тонкий кабель теряет больше, сверхпроводники не теряют ничего.'),
+  eff: () => $t('КПД — какая доля энергии топлива становится EU. Берётся из описания генератора.'),
+  totals: () => $t('Всё посчитано решателем для текущего состояния линии. «Сейчас» — фактический режим, «на полной» — если бы машины работали на 100%.'),
+};
 
 export class PropsPanel {
   constructor(el, app) {
@@ -29,12 +43,43 @@ export class PropsPanel {
   }
 
   render() {
+    this.fixes = [];
     const { selection: sel, project: p } = this.app;
     if (sel?.type === 'nodes') return this.multiView(sel.ids);
     if (sel?.type === 'node' && findNode(p, sel.id)) return this.nodeView(findNode(p, sel.id));
     if (this.app.path.length) return this.blockSummary();
     if (sel?.type === 'edge' && findEdge(p, sel.id)) return findEdge(p, sel.id).energy ? this.energyEdgeView(findEdge(p, sel.id)) : this.edgeView(findEdge(p, sel.id));
     return this.summary();
+  }
+
+  /** Totals of a schematic / block / selection (see summary.js). */
+  totalsHtml(T, title, { flows = true } = {}) {
+    const ds = this.app.iconDataset();
+    const hl = this.app.resHighlight;
+    const list = arr => arr.length ? `<table class="io bal">${arr.slice(0, 12).map(x => `<tr data-hlres="${esc(x.res.id)}" class="${hl === x.res.id ? 'hl' : ''}"><td>${iconHtml(x.res, ds, 'small')}</td><td class="bname">${esc(nm(x.res))}${x.loose > 0 ? `<br><small class="warnc">${$t('никуда не идёт:')} ${rate(x.loose, x.res.kind)}</small>` : ''}</td><td class="num">${rate(x.rate, x.res.kind)}</td></tr>`).join('')}</table>${arr.length > 12 ? `<small>${$t('и ещё')} ${arr.length - 12}</small>` : ''}`
+      : `<div class="note small">${$t('нет')}</div>`;
+    const kinds = T.machineTypes.slice(0, 6).map(([n, c]) => `${esc(n)} ×${c}`).join(', ') + (T.machineTypes.length > 6 ? ', …' : '');
+    return `<h4>${title} ${help(H.totals())}</h4>
+      <table class="kv">
+        <tr><th>${$t('Машин')}</th><td><b>${T.machines}</b>${T.machineTypes.length ? `<br><small>${kinds}</small>` : ''}</td></tr>
+        <tr><th>${$t('Энергия машин')} ${help(H.eut())}</th><td><b>${num(T.powerAvg)}</b> EU/t ${$t('сейчас')}<br><small>${num(T.powerFull)} EU/t ${$t('на полной')}</small></td></tr>
+        ${T.generators ? `<tr><th>${$t('Генераторы')}</th><td>${T.generators} ${$t('шт.')} · ${$t('выдают')} <b>${num(T.generated)}</b> ${$t('из')} ${num(T.capacity)} EU/t</td></tr>` : ''}
+        ${T.losses > 0 ? `<tr><th>${$t('Потери в кабелях')}</th><td class="warnc">${num(T.losses)} EU/t</td></tr>` : ''}
+        ${T.powerIn > 0 ? `<tr><th>${$t('Энергия приходит')}</th><td>${num(T.powerIn)} EU/t</td></tr>` : ''}
+        ${T.powerOut > 0 ? `<tr><th>${$t('Энергия уходит')}</th><td>${num(T.powerOut)} EU/t</td></tr>` : ''}
+      </table>
+      ${T.fuel.length ? `<h5>${$t('Топливо генераторов')}</h5><table class="io bal">${T.fuel.map(f => `<tr data-hlres="${esc(f.res.id)}"><td>${iconHtml(f.res, ds, 'small')}</td><td class="bname">${esc(nm(f.res))}</td><td class="num">${rate(f.rate, f.res.kind)}<br><small>${$t('на полной')} ${rate(f.full, f.res.kind)}</small></td></tr>`).join('')}</table>` : ''}
+      ${flows ? `<h5>${$t('Приходит')}</h5>${list(T.inputs)}<h5>${$t('Выходит')}</h5>${list(T.outputs)}` : ''}`;
+  }
+
+  /** Problem list; each problem links to its place and offers fixes when one is known. */
+  problemsHtml(probs, okText) {
+    if (!probs.length) return `<div class="note ok">${okText}</div>`;
+    return `<ul class="problems">${probs.map(x => {
+      const fs = fixesFor(this.app, x).filter(f => f.edit || f.run || f.enter || (f.select && f.select !== x.node));
+      const btns = fs.map(f => { this.fixes.push(f); return `<button class="fix" data-fix="${this.fixes.length - 1}" title="${esc(f.edit ? $t('Изменить схему (можно отменить: Ctrl+Z)') : '')}">${esc(f.label)}</button>`; }).join('');
+      return `<li class="${x.kind}"><a href="#" ${x.edge ? `data-sel-edge="${x.edge}"` : x.node ? `data-sel-node="${x.node}"` : ''}>${esc(x.text)}</a>${btns ? `<div class="fixes">${btns}</div>` : ''}</li>`;
+    }).join('')}</ul>`;
   }
 
   nodeName(id) {
@@ -52,7 +97,8 @@ export class PropsPanel {
     const groupable = list.filter(n => n.type !== 'gin' && n.type !== 'gout');
     this.el.innerHTML = `<h3>${$t("Выделено узлов:")} ${list.length}</h3>
       <div class="note small">${list.map(n => this.link(n.id)).join('<br>')}</div>
-      <div class="btnrow"><button data-act="group" ${groupable.length ? '' : 'disabled'}>${$t("▦ Объединить в блок (Ctrl+G)")}</button></div>
+      <div class="btnrow"><button data-act="group" ${groupable.length ? '' : 'disabled'}>${$t("▦ Объединить в блок (Ctrl+G)")}</button><button data-act="arrange" title="${$t("Расставить выделенные узлы по потоку (L)")}">${$t("⇶ Упорядочить")}</button></div>
+      ${this.totalsHtml(summarize(p, this.app.results, list.map(n => n.id)), $t('Итоги выделенного'))}
       <div class="note small"><b>${$t("Блок")}</b> ${$t("— узел из узлов. Связи, которые пересекают границу выделения, станут входами и выходами блока; неподключённые входы машин — тоже входами, неподключённые выходы — выходами. Блок считается точно: его внутренняя схема решается с тем, что реально приходит на входы. Открыть блок — двойной щелчок, вернуться — «⤴ Выйти из блока» или Esc.")}</div>
       <div class="btnrow"><button data-act="delsel" class="danger">${$t("Удалить выделенные")}</button></div>
       <div class="hint">${$t("Выделение: Ctrl/Shift + щелчок по узлу, Shift + рамка по пустому месту, Ctrl+A — все.")}</div>`;
@@ -78,11 +124,11 @@ export class PropsPanel {
       <div class="btnrow"><button data-act="exitblk">${$t("⤴ Выйти из блока")}</button><button data-act="addgin">${$t("+ Вход блока")}</button><button data-act="addgout">${$t("+ Выход блока")}</button></div>
       <h4>${$t("Входы")}</h4><table class="io bal">${io(gins, 'in')}</table>
       <h4>${$t("Выходы")}</h4><table class="io bal">${io(gouts, 'out')}</table>
-      <table class="kv"><tr><th>${$t("Мощность (полная)")}</th><td>${num(R?.powerFull || 0)} EU/t</td></tr><tr><th>${$t("Мощность (факт.)")}</th><td>${num(R?.powerAvg || 0)} EU/t</td></tr></table>
+      ${this.totalsHtml(summarize(q, R), $t('Итоги блока'), { flows: false })}
+      <h4 id="problems">${$t("Проблемы внутри (")}${probs.length})</h4>
+      ${this.problemsHtml(probs, $t("Проблем нет."))}
       ${this.balanceHtml(14, R)}
-      ${this.loopsHtml()}
-      <h4>${$t("Проблемы внутри (")}${probs.length})</h4>
-      ${probs.length ? `<ul class="problems">${probs.map(x => `<li class="${x.kind}"><a href="#" ${x.edge ? `data-sel-edge="${x.edge}"` : x.node ? `data-sel-node="${x.node}"` : ''}>${esc(x.text)}</a></li>`).join('')}</ul>` : `<div class="note ok">${$t("Проблем нет.")}</div>`}`;
+      ${this.loopsHtml()}`;
   }
 
   groupView(n, s) {
@@ -104,6 +150,7 @@ export class PropsPanel {
       <tr><th>${$t("Мощность")}</th><td>${num(s?.powerFull || 0)} ${$t("EU/t полная /")} ${num(s?.powerAvg || 0)} ${$t("факт.")}</td></tr></table>
       <table class="io"><tr><th></th><th>${$t("Порт")}</th><th>${$t("Полная мощн.")}</th><th>${$t("Сейчас")}</th></tr>${rows}</table>
       <div class="note small">${$t("«Полная мощность» — сколько блок возьмёт и даст, если входы не ограничены. «Сейчас» — внутренняя схема, решённая с тем, что реально приходит на входы.")}</div>
+      ${s?.innerR ? this.totalsHtml(summarize(n.inner, s.innerR), $t('Внутри блока'), { flows: false }) : ''}
       <div class="btnrow"><button data-act="enter">${$t("⤵ Открыть блок")}</button><button data-act="ungroup">${$t("Разгруппировать")}</button></div>`;
   }
 
@@ -117,25 +164,34 @@ export class PropsPanel {
       ${p.demo ? `<div class="note demo"><b>${$t("ДЕМО-СХЕМА.")}</b> ${esc(p.demoNote)}</div>` : ''}
       <table class="kv">
         <tr><th>${$t("Узлов / связей")}</th><td>${p.nodes.length} / ${p.edges.length}</td></tr>
-        <tr><th>${$t("Мощность (полная)")}</th><td>${num(R?.powerFull || 0)} EU/t</td></tr>
-        <tr><th>${$t("Мощность (факт.)")}</th><td>${num(R?.powerAvg || 0)} EU/t</td></tr>
         <tr><th>${$t("Рецепты схемы")}</th><td>${Object.keys(p.recipes).length} ${$t("снимков")}${p.dataset ? `<br><small>${$t("создана на")} ${esc(p.dataset.label)}</small>` : ''}</td></tr>
       </table>
+      <div class="btnrow"><button data-act="arrange" title="${$t("Расставить узлы по потоку слева направо (L). Отменить: Ctrl+Z")}">${$t("⇶ Упорядочить схему")}</button><button data-act="png" title="${$t("Сохранить картинку схемы")}">${$t("🖼 PNG")}</button></div>
+      <h4 id="problems">${$t("Проблемы (")}${probs.length})</h4>
+      ${this.problemsHtml(probs, $t("Дефицитов и неподключённых портов нет."))}
+      ${this.totalsHtml(summarize(p, R), $t('Итоги линии'))}
       <h4>${$t("Уровень машин")}</h4>
       <div class="grid2"><label>${$t("По умолчанию для новых")} <select data-f="defaultTier"><option value="">${$t("уровень рецепта")}</option>${TIERS.map((t, i) => `<option value="${i}" ${p.defaultTier === i ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
         <label>&nbsp;<button data-act="applytier" ${p.defaultTier == null ? 'disabled' : ''}>${$t("Применить ко всем машинам")}</button></label></div>
       ${this.energySummary()}
       ${this.balanceHtml()}
       ${this.loopsHtml()}
-      <h4>${$t("Проблемы (")}${probs.length})</h4>
-      ${probs.length ? `<ul class="problems">${probs.map(x => `<li class="${x.kind}"><a href="#" ${x.edge ? `data-sel-edge="${x.edge}"` : x.node ? `data-sel-node="${x.node}"` : ''}>${esc(x.text)}</a></li>`).join('')}</ul>` : `<div class="note ok">${$t("Дефицитов и неподключённых портов нет.")}</div>`}
+      ${this.versionsHtml()}
       <h4>${$t("Данные")}</h4>
       <table class="kv">
         <tr><th>${$t("Рецепты")}</th><td>${esc(act?.label || '—')} ${act?.verified ? `<span class="badge ok">${$t("проверено")}</span>` : `<span class="badge warn">${$t("не проверено")}</span>`}<br><small>${$t("формат")} ${act?.format ?? '—'} · ${esc(act?.sourceBranch || act?.origin || '')}</small></td></tr>
         <tr><th>${$t("Сборка")}</th><td>${inst?.found ? `${esc(inst.packVersion || '?')} <small>(${esc(inst.packVersionSource || '')})</small>` : `<small>${$t("не найдена")}</small>`}</td></tr>
       </table>
       ${inst?.found && act && inst.packVersion !== act.packVersion ? `<div class="note warn">${$t("Рецепты")} ${esc(act.packVersion)} ${$t("≠ сборка")} ${esc(inst.packVersion)}${$t(". Значения могут отличаться; правки вносите в «Свои рецепты».")}</div>` : ''}
-      <div class="hint">${$t("Подсказки: колесо — масштаб, перетаскивание фона — панорама, перетащите от порта к порту — связь, Delete — удалить, Ctrl+Z / Ctrl+Y — отмена/повтор, F — вписать.")}</div>`;
+      <div class="hint">${$t("Подсказки: колесо — масштаб, перетаскивание фона — панорама, перетащите от порта к порту — связь, Delete — удалить, Ctrl+Z / Ctrl+Y — отмена/повтор, F — вписать.")}<br>${$t("От порта в пустое место — найти рецепт. R / U над иконкой — рецепты / применение. Ctrl+C / Ctrl+V — копировать узлы (и в другую схему), Ctrl+D — дублировать, L — упорядочить.")}</div>`;
+  }
+
+  versionsHtml() {
+    const vs = this.app.root.versions || [];
+    return `<h4>${$t("Версии (")}${vs.length})</h4>
+      <div class="inl vrow"><input data-vname placeholder="${$t("например: до EBF")}"><button data-act="vsave">${$t("Сохранить версию")}</button></div>
+      ${vs.length ? `<ul class="versions">${vs.map(v => `<li><span><b>${esc(v.name)}</b><br><small>${esc(new Date(v.at).toLocaleString())}</small></span><button data-vrestore="${esc(v.id)}">${$t("Вернуть")}</button><button data-vdel="${esc(v.id)}" title="${$t("Удалить версию")}">✕</button></li>`).join('')}</ul>` : ''}
+      <div class="note small">${$t("Версия — копия схемы внутри её файла. «Вернуть» заменяет схему этой копией; отменить можно через Ctrl+Z.")}</div>`;
   }
 
   nodeView(n) {
@@ -198,7 +254,7 @@ export class PropsPanel {
       const can = b.makeMax + b.external, now = b.made + b.external;
       const short = b.needFull - can;
       const st = b.needFull > 0 && short > 1e-9 * Math.max(1, b.needFull) ? 'bad' : 'good';
-      return `<tr><td>${iconHtml(b.res, ds, 'small')}</td><td class="bname" title="${esc(nm(b.res) + '\n' + (b.res?.id || ''))}">${esc(nm(b.res))}</td>
+      return `<tr data-hlres="${esc(b.res?.id || '')}" class="${this.app.resHighlight && this.app.resHighlight === b.res?.id ? 'hl' : ''}"><td>${iconHtml(b.res, ds, 'small')}</td><td class="bname" title="${esc(nm(b.res) + '\n' + (b.res?.id || ''))}">${esc(nm(b.res))}</td>
         <td class="num">${b.needFull > 0 ? rate(b.needFull, k(b)) : '—'}</td>
         <td class="num">${can > 0 ? rate(can, k(b)) : '—'}${b.external > 0 ? `<br><small>${b.makeMax > 0 ? rate(b.external, k(b)) + ' ' : ''}${$t("из источника")}</small>` : ''}</td>
         <td class="num">${rate(now, k(b))}<br><small>${rate(b.used, k(b))} ${$t("расход")}</small></td>
@@ -207,6 +263,7 @@ export class PropsPanel {
     const offNote = !energyOn(p) && p.nodes.some(n => n.type === 'generator') ? `<div class="note small">${$t("Учёт энергии выключен — топливо генераторов в балансе не учитывается.")}</div>` : '';
     return `<h4>${$t("Баланс линии")}</h4>
       <div class="note small"><b>${$t("Нужно всего")}</b> ${$t("— сколько ресурса заберут все машины и генераторы линии на полной мощности.")} <b>${$t("Макс.")}</b> ${$t("— сколько линия может дать: производство всех машин на полной мощности + источники.")} <b>${$t("Сейчас")}</b> ${$t("— фактически производится и расходуется.")} <b>${$t("Итог")}</b> ${$t("— хватит ли ресурса на полной мощности.")}</div>
+      <div class="note small">${$t("Щелчок по строке — обвести на схеме узлы с этим ресурсом.")}</div>
       <table class="io bal"><tr><th></th><th>${$t("Ресурс")}</th><th>${$t("Нужно всего")}</th><th>${$t("Макс.")}</th><th>${$t("Сейчас")}</th><th>${$t("Итог")}</th></tr>${rows}</table>
       ${list.length > limit ? `<div class="btnrow"><button data-act="machines">${$t("Весь баланс (")}${list.length}) ☰</button></div>` : ''}${offNote}`;
   }
@@ -258,7 +315,7 @@ export class PropsPanel {
         <label>${$t("Напряжение")} <select data-f="voltage">${GT_V.map(v => `<option value="${v}" ${+n.voltage === v ? 'selected' : ''}>${GT_T[GT_V.indexOf(v)]} — ${num(v)} ${$t("В")}</option>`).join('')}</select></label>
         <label>${$t("Ампер на выходе")} <input type="number" min="0" step="1" data-f="amps" value="${n.amps ?? 1}"></label>
         <label>${$t("Генераторов")} <input type="number" min="0" step="1" data-f="count" value="${n.count ?? 1}"></label>
-        <label>${$t("КПД, %")} <input type="number" min="0" step="any" data-f="efficiency" value="${n.efficiency ?? ''}" placeholder="${$t("не указан — 100")}"></label>
+        <label>${$t("КПД, %")} ${help(H.eff())} <input type="number" min="0" step="any" data-f="efficiency" value="${n.efficiency ?? ''}" placeholder="${$t("не указан — 100")}"></label>
       </div>
       <div class="note small">${$t("Мощность = напряжение × ампер × число генераторов. Одноблочные генераторы GT выдают 1 А. КПД берётся из описания предмета («Fuel Efficiency»), если он там есть.")}</div>`;
     // fuel
@@ -329,8 +386,8 @@ export class PropsPanel {
         <tr><th>${$t("Доставляется")}</th><td class="${s.deficit ? 'bad' : 'good'}">${num(s.offered)} EU/t${s.deficit ? ` (−${num(s.deficit)})` : ''}</td></tr>
         <tr><th>${$t("Фактически потребляет")}</th><td>${num(s.flow)} EU/t</td></tr>
         <tr><th>${$t("Генератор отправляет")}</th><td>${num(s.draw)} EU/t</td></tr>
-        <tr><th>${$t("Потери в кабеле")}</th><td class="${s.loss > 0 ? 'warnc' : 'good'}">${num(s.loss)} EU/t${pct}</td></tr>
-        <tr><th>${$t("Ток (полная / факт.)")}</th><td>${num(s.ampsPeak, 3)} / ${num(s.ampsActual, 3)} ${$t("А")}${e.cable ? ` ${$t("· кабель держит")} ${num(e.cable.amps)} ${$t("А")}` : ''}</td></tr>
+        <tr><th>${$t("Потери в кабеле")} ${help(H.loss())}</th><td class="${s.loss > 0 ? 'warnc' : 'good'}">${num(s.loss)} EU/t${pct}</td></tr>
+        <tr><th>${$t("Ток (полная / факт.)")} ${help(H.amps())}</th><td>${num(s.ampsPeak, 3)} / ${num(s.ampsActual, 3)} ${$t("А")}${e.cable ? ` ${$t("· кабель держит")} ${num(e.cable.amps)} ${$t("А")}` : ''}</td></tr>
       </table>
       ${s.warnings?.length ? `<ul class="problems">${s.warnings.map(w => `<li class="energy">${esc(w.text)}</li>`).join('')}</ul>` : ''}`;
       if (s.status === 'deficit' && s.affected?.length) h += `<h4 class="bad">${$t("Не хватает энергии")}</h4><ul class="affected">${s.affected.map(a => `<li>${this.link(a.node)} ${a.util != null ? `${$t("— загрузка")} ${num(a.util * 100, 1)}%` : ''}</li>`).join('')}</ul>`;
@@ -390,15 +447,16 @@ export class PropsPanel {
       <label>${$t("Циклов/мин на машину (вручную)")} <input type="number" min="0" step="any" data-f="cycleOverride" value="${n.cycleOverride || ''}" placeholder="${mp?.ticks ? num(1200 / mp.ticks) + $t(' (из рецепта)') : $t('нет длительности в рецепте')}"></label>
       <table class="kv">
         <tr><th>${$t("Длительность")}</th><td>${gt?.durationTicks != null ? `${gt.durationTicks} t (${seconds(gt.durationTicks)})${mp?.ocs ? ` → ${mp.ticks} t (${seconds(mp.ticks)})` : ''}` : '—'}</td></tr>
-        <tr><th>EU/t</th><td>${gt?.eut != null ? num(gt.eut) + (mp?.ocs ? ` → ${num(mp.eut)}` : '') + (gt.voltage != null ? ` <small>(${num(gt.voltage)} V × ${gt.amperage} A)</small>` : '') : '—'}</td></tr>
+        <tr><th>EU/t ${help(H.eut() + ' ' + H.oc())}</th><td>${gt?.eut != null ? num(gt.eut) + (mp?.ocs ? ` → ${num(mp.eut)}` : '') + (gt.voltage != null ? ` <small>(${num(gt.voltage)} V × ${gt.amperage} A)</small>` : '') : '—'}</td></tr>
         <tr><th>${$t("Уровень")}</th><td>${$t("рецепт")} ${esc(gt?.tierName || TIERS[recipeTier(r)])} ${$t("· машина")} <b>${esc(TIERS[mp?.tier ?? recipeTier(r)])}</b>${mp?.ocs ? ` ${$t("(разгонов:")} ${mp.ocs})` : ''}</td></tr>
         ${s?.loop ? `<tr><th>${$t("Цикл")}</th><td><span class="badge loop">${$t("↻ цикл")} ${s.loop}</span></td></tr>` : ''}
         ${gt?.specialValue ? `<tr><th>specialValue</th><td>${num(gt.specialValue)}</td></tr>` : ''}
         ${(gt?.metadata || []).map(m => `<tr><th>${esc(m.key)}</th><td>${num(m.value)}</td></tr>`).join('')}
         <tr><th>${$t("Циклов")}</th><td>${mp?.cycles != null ? `${num(rateVal(mp.cycles))}${unitLabel()} ${$t("(все машины)")}` : '—'}</td></tr>
-        <tr><th>${$t("Загрузка")}</th><td>${s?.util != null ? `<b class="${s.util < 1 - 1e-7 ? 'bad' : 'good'}">${num(s.util * 100, 1)}%</b>${s.limitedBy ? $t(' — ограничивает «') + esc(s.limitedBy === 'ep' ? $t('энергия (EU)') : nm(ports(p, n).find(x => x.id === s.limitedBy)?.res)) + '»' : ''}` : '—'}</td></tr>
+        <tr><th>${$t("Загрузка")} ${help(H.util())}</th><td>${s?.util != null ? `<b class="${s.util < 1 - 1e-7 ? 'bad' : 'good'}">${num(s.util * 100, 1)}%</b>${s.limitedBy ? $t(' — ограничивает «') + esc(s.limitedBy === 'ep' ? $t('энергия (EU)') : nm(ports(p, n).find(x => x.id === s.limitedBy)?.res)) + '»' : ''}` : '—'}</td></tr>
         <tr><th>${$t("Энергия")}</th><td>${s?.powerFull != null ? `${num(s.powerFull)} ${$t("EU/t полная ·")} ${num(s.powerAvg)} ${$t("EU/t факт.")}` : '—'}${s?.inputs?.ep ? `<br><small>${s.inputs.ep.connected ? `${$t("доставляется")} ${num(s.inputs.ep.supplied)} EU/t` : `<span class="warnc">${$t("питание не подключено")}</span>`}</small>` : ''}</td></tr>
-      </table>`;
+        ${s?.limitedBy ? `<tr><th>${$t("Почему")}</th><td><small>${esc(whyLimited(p, this.app.results, n.id) || '')}</small></td></tr>` : ''}
+      </table>${this.countHints(n)}`;
     // ore dictionary choices
     r.inputs.forEach((e, i) => {
       if (e.kind !== 'oredict') return;
@@ -424,6 +482,17 @@ export class PropsPanel {
       ${crafters.length ? `<details><summary>${$t("Машины для этой карты (")}${crafters.length})</summary><div class="crafters">${crafters.map(c => `<div>${iconHtml(c, ds, 'small')} ${esc(nm(c))}</div>`).join('')}</div></details>` : ''}
       <div class="btnrow"><button data-act="compare">${$t("Сравнить с каталогом")}</button><button data-act="tocustom">${$t("Копировать в свои")}</button></div>
       <div class="cmp"></div>`;
+    return h;
+  }
+
+  /** "Set to N machines" suggestions: to cover the demand downstream, or to match the supply. */
+  countHints(n) {
+    const p = this.app.project, R = this.app.results;
+    const up = machinesForDemand(p, R, n), down = machinesForSupply(R, n);
+    const b = (count, text) => { this.fixes.push({ label: text, edit: q => { const x = q.nodes.find(y => y.id === n.id); x.count = count; } }); return `<button class="fix" data-fix="${this.fixes.length - 1}">${esc(text)}</button>`; };
+    let h = '';
+    if (up) h += `<div class="note small">${$t("Дальше по линии просят больше, чем дают эти машины.")} ${b(up.count, `${$t('Машин')}: ${n.count} → ${up.count}`)}</div>`;
+    if (down) h += `<div class="note small">${$t("Подачи хватает только на")} ${down} ${$t("из")} ${n.count}${$t(" — остальные простаивают.")} ${b(down, `${$t('Машин')}: ${n.count} → ${down}`)}</div>`;
     return h;
   }
 
@@ -590,6 +659,12 @@ export class PropsPanel {
       });
       return;
     }
+    if (t.dataset.fix != null) { const f = this.fixes?.[+t.dataset.fix]; if (f) applyFix(app, f); return; }
+    if (t.dataset.vrestore) { if (confirm($t('Заменить схему сохранённой версией? Отменить можно через Ctrl+Z.'))) app.restoreVersion(t.dataset.vrestore); return; }
+    if (t.dataset.vdel) { app.deleteVersion(t.dataset.vdel); return; }
+    if (t.dataset.act === 'vsave') { app.saveVersion(this.el.querySelector('[data-vname]')?.value.trim()); return; }
+    const hr = t.closest('[data-hlres]');
+    if (hr && hr.dataset.hlres && !t.closest('a,button,input')) { app.toggleResHighlight(hr.dataset.hlres); return; }
     if (t.dataset.selNode) { ev.preventDefault(); app.select({ type: 'node', id: t.dataset.selNode }); return; }
     if (t.dataset.selEdge) { ev.preventDefault(); app.select({ type: 'edge', id: t.dataset.selEdge }); return; }
     const act = t.dataset.act;
@@ -605,6 +680,8 @@ export class PropsPanel {
     if (act === 'addgout') app.addSimple('gout');
     if (act === 'applytier') app.applyDefaultTier();
     if (act === 'machines') app.machineListDialog();
+    if (act === 'arrange') app.arrangeNodes();
+    if (act === 'png') app.exportPng();
     if (act === 'addgen') app.addSimple('generator');
     if (act === 'togen') app.convertToGenerator(app.selection.id);
     if (act === 'tocustom') {

@@ -9,8 +9,12 @@ import { Canvas } from './canvas.js';
 import { CatalogPanel } from './catalog.js';
 import { PropsPanel } from './props.js';
 import { editRecipe, openModal } from './editor.js';
+import { prefs } from './prefs.js';
+import { arrange } from './layout.js';
+import { exportPng } from './snapshot.js';
 
 const AUTOSAVE = 'gtnh-planner-autosave-v1';
+const SAVED = 'gregflow-saved-hash';
 const LANG = 'gtnh-planner-lang';
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -27,6 +31,9 @@ class App {
     this.root = null;     // the whole schematic (what is saved)
     this.path = [];       // ids of blocks opened for editing, outermost first
     this.blockFull = false; // inside a block: show it at full capacity instead of the actual supply
+    this.resHighlight = null; // resource id picked in the line balance: its nodes are outlined
+    this.savedHash = null;    // hash of the schematic as last saved / opened (unsaved-changes marker)
+    this.hover = null;        // element under the mouse (R / U keys)
   }
 
   /** The schematic being edited: the root, or the inside of the opened block. */
@@ -115,6 +122,7 @@ class App {
     if (saved) { try { p = JSON.parse(saved); } catch { p = null; } }
     this.project = p && p.format === 'gtnh-planner-project' ? p : M.newProject($t('Новая линия'), this.datasetInfo());
     setUnit(this.root.units || 'min');
+    this.savedHash = store.get(SAVED);
     this.canvas = new Canvas(document.getElementById('canvas'), this);
     this.catalog = new CatalogPanel(document.getElementById('catalog'), this);
     this.props = new PropsPanel(document.getElementById('props'), this);
@@ -254,6 +262,46 @@ class App {
     document.getElementById('redo').disabled = !this.history.redo.length;
     document.getElementById('energyOn').checked = M.energyOn(this.root);
     document.body.classList.toggle('inblock', this.path.length > 0);
+    this.renderProblemsBadge();
+  }
+
+  /** Toolbar badge with the number of problems of the level being viewed. */
+  renderProblemsBadge() {
+    const el = document.getElementById('probs');
+    if (!el) return;
+    const n = this.results?.problems?.length || 0;
+    el.hidden = !n;
+    el.textContent = `⚠ ${n}`;
+    el.title = n ? $t('Проблем:') + ' ' + n + ' — ' + $t('нажмите, чтобы открыть список с исправлениями') : '';
+  }
+
+  showProblems() {
+    this.select(null);
+    requestAnimationFrame(() => document.getElementById('problems')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  }
+
+  /** Short hash of the saved form of the schematic (to tell whether it changed since saving). */
+  hashOf(p = this.root) {
+    const t = JSON.stringify({ ...p, versions: undefined });
+    let h = 2166136261;
+    for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(36) + ':' + t.length;
+  }
+  markSaved() { this.savedHash = this.hashOf(); store.set(SAVED, this.savedHash); this.renderTitle(); }
+  isDirty() { return this.root.nodes.length > 0 && this.hashOf() !== this.savedHash; }
+
+  /** Nodes that take or give resource `id` (outlined when a line-balance row is picked). */
+  nodesWithRes(id) {
+    const p = this.project, set = new Set();
+    for (const n of p.nodes) {
+      if (M.ports(p, n).some(pt => pt.res?.id === id) || n.fuel?.res?.id === id) set.add(n.id);
+      if (n.type === 'sink' && this.sinkContents(n.id).some(x => x.res?.id === id)) set.add(n.id);
+    }
+    return set;
+  }
+  toggleResHighlight(id) {
+    this.resHighlight = this.resHighlight === id ? null : id;
+    this.canvas.render(); this.props.render();
   }
 
   /** Solve the whole schematic, then (if a block is open) its inside with what the outer line supplies. */
@@ -367,7 +415,8 @@ class App {
       q = n?.inner;
     });
     const el = document.getElementById('ptitle');
-    el.innerHTML = `${p.demo ? `<span class="badge demo">${$t("ДЕМО — условные значения источников")}</span> ` : ''}${this.path.length ? `<a href="#" data-crumb="0">${esc(p.name)}</a>` : esc(p.name)}${crumbs.join('')}
+    const dirty = this.isDirty() ? `<span class="dirty" title="${$t("Есть изменения после последнего сохранения в projects/ (автосохранение в браузере работает всегда)")}">●</span> ` : '';
+    el.innerHTML = `${p.demo ? `<span class="badge demo">${$t("ДЕМО — условные значения источников")}</span> ` : ''}${dirty}${this.path.length ? `<a href="#" data-crumb="0">${esc(p.name)}</a>` : esc(p.name)}${crumbs.join('')}
       ${this.path.length ? `<button data-crumb="${this.path.length - 1}" class="exitblk" title="${$t("Вернуться на уровень выше")}">${$t("⤴ Выйти из блока")}</button>
         <label class="tbchk" title="${$t("Показать блок на полной мощности (входы без ограничения) вместо фактической подачи")}"><input type="checkbox" data-blockfull ${this.blockFull ? 'checked' : ''}> ${$t("полная мощность")}</label>` : ''}`;
     el.onclick = e => {
@@ -576,16 +625,138 @@ class App {
     this.changed({ solve: false });
   }
 
-  duplicateSelection() {
-    const sel = this.selection;
-    if (sel?.type !== 'node') return;
-    let n;
+  /** Selected nodes with the links between them and their recipe snapshots (for copy / duplicate). */
+  clipOf(ids) {
+    const p = this.project, set = new Set(ids);
+    const nodes = p.nodes.filter(n => set.has(n.id));
+    if (!nodes.length) return null;
+    const recipes = {};
+    for (const n of nodes) if (n.type === 'machine' && p.recipes[n.recipeId]) recipes[n.recipeId] = p.recipes[n.recipeId];
+    return JSON.parse(JSON.stringify({
+      format: 'gregflow-clip', version: 1, nodes, recipes, energy: M.energyOn(p),
+      edges: p.edges.filter(e => set.has(e.from.node) && set.has(e.to.node)),
+    }));
+  }
+
+  /** Insert a clip with new ids; `at` is the world point for its top-left corner. */
+  pasteClip(c, at) {
+    if (c?.format !== 'gregflow-clip' || !c.nodes?.length) return;
+    const x0 = Math.min(...c.nodes.map(n => n.x)), y0 = Math.min(...c.nodes.map(n => n.y));
+    const map = new Map();
     this.mutate(p => {
-      const o = M.node(p, sel.id);
-      n = M.addNode(p, { ...JSON.parse(JSON.stringify(o)), id: undefined, x: o.x + 40, y: o.y + 40 });
-      n.id = M.nid(p, 'n');
+      for (const [k, r] of Object.entries(c.recipes || {})) p.recipes[k] ??= r;
+      for (const n of c.nodes) {
+        const id = M.nid(p, 'n');
+        map.set(n.id, id);
+        p.nodes.push({ ...n, id, x: Math.round((at.x + n.x - x0) / 10) * 10, y: Math.round((at.y + n.y - y0) / 10) * 10 });
+      }
+      for (const e of c.edges) p.edges.push({ ...e, id: M.nid(p, 'e'), from: { ...e.from, node: map.get(e.from.node) }, to: { ...e.to, node: map.get(e.to.node) } });
+      if (c.energy && !M.energyOn(p)) p.energy = { ...(p.energy || {}), enabled: true };
     });
-    this.select({ type: 'node', id: n.id });
+    this.selectNodes([...map.values()]);
+    this.loadProjectNames();
+  }
+
+  copySelection(cut = false) {
+    const ids = this.selectedIds();
+    const c = this.clipOf(ids);
+    if (!c) return;
+    prefs.setClipboard(c);
+    if (cut) this.deleteSelection();
+    this.toast(`${cut ? $t('Вырезано узлов:') : $t('Скопировано узлов:')} ${c.nodes.length}${$t(' — Ctrl+V вставит их (в том числе в другую схему)')}`);
+  }
+
+  paste() {
+    const c = prefs.clipboard();
+    if (!c) { this.toast($t('Буфер пуст: выделите узлы и нажмите Ctrl+C'), 'error'); return; }
+    this.pasteClip(c, this.mouseWorld() || this.placeAt());
+  }
+
+  duplicateSelection() {
+    const c = this.clipOf(this.selectedIds());
+    if (!c) return;
+    const x0 = Math.min(...c.nodes.map(n => n.x)), y0 = Math.min(...c.nodes.map(n => n.y));
+    this.pasteClip(c, { x: x0 + 40, y: y0 + 40 });
+  }
+
+  /** World point under the mouse, when the mouse is over the canvas. */
+  mouseWorld() {
+    const h = this.lastMouse;
+    if (!h || !this.canvas.el.contains(document.elementFromPoint(h.x, h.y))) return null;
+    return this.canvas.toWorld(h.x, h.y);
+  }
+
+  /** Add a source / storage / generator next to a port and link it (problem fixes). */
+  quickAttach(src, kind) {
+    const p = this.project;
+    const n = M.node(p, src.node);
+    if (!n) return;
+    const el = this.canvas.nlayer.querySelector(`.node[data-id="${n.id}"]`);
+    const w = el?.offsetWidth || 300;
+    const pos = kind === 'sink' ? { x: n.x + w + 140, y: n.y } : kind === 'generator' ? { x: n.x - 380, y: n.y + (el?.offsetHeight || 150) + 40 } : { x: n.x - 340, y: n.y };
+    const at = this.placeAt(pos);
+    const res = M.portResource(p, n, src.port);
+    let m;
+    this.mutate(q => {
+      if (kind === 'source') m = M.addNode(q, { type: 'source', resource: strip(res), rate: fromUnit(res?.kind === 'fluid' ? 1000 : 10), ...at });
+      else if (kind === 'sink') m = M.addNode(q, { type: 'sink', ...at });
+      else { m = M.addNode(q, { type: 'generator', ...at }); if (!M.energyOn(q)) q.energy = { ...(q.energy || {}), enabled: true }; }
+    });
+    if (kind === 'source') this.connect({ node: m.id, port: 'out' }, { node: n.id, port: src.port });
+    else if (kind === 'sink') this.connect({ node: n.id, port: src.port }, { node: m.id, port: 'in' });
+    else this.connect({ node: m.id, port: 'eo' }, { node: n.id, port: 'ep' });
+    if (kind !== 'sink') this.select({ type: 'node', id: m.id });
+    this.toast(kind === 'source' ? $t('Источник добавлен — задайте его скорость') : kind === 'generator' ? $t('Генератор добавлен — выберите модель и топливо') : $t('Склад добавлен'));
+  }
+
+  /** Auto-arrange the selected nodes (or all) in columns following the flow. */
+  arrangeNodes() {
+    const sel = this.selectedIds();
+    const ids = sel.length > 1 ? sel : null;
+    const size = n => {
+      const el = this.canvas.nlayer.querySelector(`.node[data-id="${n.id}"]`);
+      return { w: el?.offsetWidth || 300, h: el?.offsetHeight || 150 };
+    };
+    const pos = arrange(this.project, ids, size);
+    if (!pos.size) { this.toast($t('Нечего упорядочивать'), 'error'); return; }
+    this.mutate(p => { for (const n of p.nodes) { const q = pos.get(n.id); if (q) { n.x = q.x; n.y = q.y; } } });
+    if (!ids) requestAnimationFrame(() => this.canvas.fit());
+    this.toast(ids ? $t('Выделенные узлы упорядочены') : $t('Схема упорядочена по потоку. Отменить: Ctrl+Z'));
+  }
+
+  /** R / U over any icon: recipes that make it / use it (as in NEI). */
+  lookupHovered(mode) {
+    const el = this.hover?.closest?.('[data-gid]');
+    if (!el) return false;
+    this.catalog.showGoods(el.dataset.gid, mode);
+    return true;
+  }
+
+  exportPng() { exportPng(this).catch(err => this.toast(err.message, 'error')); }
+
+  // ---------- named versions (stored inside the schematic) ----------
+  saveVersion(name) {
+    const data = JSON.stringify({ ...this.root, versions: undefined });
+    this.history.push(this.root);
+    this.root.versions = [{ id: Date.now().toString(36), name: name || new Date().toLocaleString(), at: new Date().toISOString(), data }, ...(this.root.versions || [])].slice(0, 30);
+    this.changed({ solve: false });
+    this.toast($t('Версия сохранена в схеме'));
+  }
+  restoreVersion(id) {
+    const v = (this.root.versions || []).find(x => x.id === id);
+    if (!v) return;
+    this.history.push(this.root);
+    const versions = this.root.versions;
+    this.root = { ...JSON.parse(v.data), versions };
+    this.path = []; this.selection = null;
+    this.changed();
+    requestAnimationFrame(() => this.canvas.fit());
+    this.toast(`${$t('Восстановлена версия')} «${v.name}». ${$t('Отменить: Ctrl+Z')}`);
+  }
+  deleteVersion(id) {
+    this.history.push(this.root);
+    this.root.versions = (this.root.versions || []).filter(x => x.id !== id);
+    this.changed({ solve: false });
   }
 
   sinkContents(id) {
@@ -628,9 +799,11 @@ class App {
   async exportCustom() { download('gtnh-custom-recipes.json', JSON.stringify(await api.custom(), null, 1)); }
 
   // ---------- projects ----------
-  setProject(p) {
+  setProject(p, { saved = true } = {}) {
     this.project = p;
     this.blockFull = false;
+    this.resHighlight = null;
+    if (saved) this.savedHash = this.hashOf(p); store.set(SAVED, this.savedHash);
     this.history.clear();
     this.selection = null;
     setUnit(p.units || 'min');
@@ -643,12 +816,13 @@ class App {
   async saveProject() {
     try {
       const r = await api.saveProject(this.root);
+      this.markSaved();
       this.toast($t('Сохранено в projects/') + r.file + '.json');
     } catch (e) { this.toast(e.message, 'error'); }
   }
 
   async openProjectDialog() {
-    const list = (await api.projects()).projects;
+    const list = (await api.projects()).projects.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
     const m = openModal(`<h3>${$t("Проекты")}</h3><div class="note small">${$t("Файлы в папке")} <code>projects/</code> ${$t("планировщика.")}</div>
       <div class="list">${list.map(x => `<div class="li" data-open="${esc(x.file)}"><span>${esc(x.name)}${x.demo ? ` <span class="badge demo">${$t("демо")}</span>` : ''}</span><small>${x.nodes} ${$t("узл. ·")} ${esc(x.modified)}</small><button data-del="${esc(x.file)}">✕</button></div>`).join('') || `<div class="note">${$t("Сохранённых проектов нет.")}</div>`}</div>`);
     m.el.addEventListener('click', async e => {
@@ -684,7 +858,7 @@ class App {
       M.connect(p, { node: el.id, port: 'o0' }, { node: sk.id, port: 'in' });
       M.connect(p, { node: c.id, port: 'out' }, { node: bf.id, port: iC });
       M.connect(p, { node: bf.id, port: 'o0' }, { node: sk2.id, port: 'in' });
-      this.setProject(p);
+      this.setProject(p, { saved: false });
       this.toast($t('Загружена демо-схема. Значения источников условные.'));
     } catch (e) { this.toast($t('Демо недоступно: ') + e.message, 'error'); }
   }
@@ -783,6 +957,9 @@ class App {
       if (['splitter', 'merger', 'sink', 'generator', 'gin', 'gout'].includes(a)) this.addSimple(a);
       if (a === 'group') this.groupSelection();
       if (a === 'machines') this.machineListDialog();
+      if (a === 'arrange') this.arrangeNodes();
+      if (a === 'probs') this.showProblems();
+      if (a === 'png') this.exportPng();
     });
     void tb;
   }
@@ -791,6 +968,7 @@ class App {
   redo() { const p = this.history.forward(this.root); if (p) { const path = this.path; this.root = p; this.path = path; this.selection = null; this.changed({ history: false }); } }
 
   bindKeys() {
+    window.addEventListener('pointermove', e => { this.hover = e.target; this.lastMouse = { x: e.clientX, y: e.clientY }; }, { passive: true });
     window.addEventListener('keydown', e => {
       if (e.target.closest('input,textarea,select')) return;
       if (document.querySelector('.modal-wrap')) { if (e.key === 'Escape') document.querySelector('.modal-wrap').remove(); return; }
@@ -799,12 +977,18 @@ class App {
       else if ((e.ctrlKey || e.metaKey) && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); this.redo(); }
       else if ((e.ctrlKey || e.metaKey) && k === 's') { e.preventDefault(); this.saveProject(); }
       else if ((e.ctrlKey || e.metaKey) && k === 'd') { e.preventDefault(); this.duplicateSelection(); }
+      else if ((e.ctrlKey || e.metaKey) && k === 'c' && !String(window.getSelection())) { e.preventDefault(); this.copySelection(); }
+      else if ((e.ctrlKey || e.metaKey) && k === 'x' && !String(window.getSelection())) { e.preventDefault(); this.copySelection(true); }
+      else if ((e.ctrlKey || e.metaKey) && k === 'v') { e.preventDefault(); this.paste(); }
+      else if ((e.ctrlKey || e.metaKey) && k === 'o') { e.preventDefault(); this.openProjectDialog(); }
+      else if ((k === 'r' || k === 'u') && !e.ctrlKey && !e.metaKey && !e.altKey) { if (this.lookupHovered(k === 'r' ? 'production' : 'consumption')) e.preventDefault(); }
+      else if (k === 'l' && !e.ctrlKey && !e.metaKey) this.arrangeNodes();
       else if ((e.ctrlKey || e.metaKey) && k === 'g' && e.shiftKey) { e.preventDefault(); const s = this.selection; if (s?.type === 'node' && M.node(this.project, s.id)?.type === 'group') this.ungroup(s.id); }
       else if ((e.ctrlKey || e.metaKey) && k === 'g') { e.preventDefault(); this.groupSelection(); }
       else if ((e.ctrlKey || e.metaKey) && k === 'a') { e.preventDefault(); this.selectNodes(this.project.nodes.map(n => n.id)); }
       else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); this.deleteSelection(); }
       else if (k === 'f' && !e.ctrlKey) this.canvas.fit();
-      else if (e.key === 'Escape') { this.catalog.setPending(null); if (!this.selection && this.path.length) this.exitBlock(); else this.select(null); }
+      else if (e.key === 'Escape') { this.catalog.setPending(null); if (this.resHighlight) { this.toggleResHighlight(this.resHighlight); return; } if (!this.selection && this.path.length) this.exitBlock(); else this.select(null); }
     });
   }
 }

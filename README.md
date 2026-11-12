@@ -67,9 +67,12 @@ your own recipes) from the old folder into the new one.
 | Machines per node, tier | Select a node → right panel: count, machine tier (GT overclock is applied), cycles/min for special cases. |
 | Split an output | Drag a second link from the same output and set a fixed share (e.g. 70%); the rest goes «auto» by demand. |
 | Energy | Toggle «⚡ Energy», add a generator, connect its ⚡ to the ⚡ of machines, choose a cable and its length. |
-| Line totals | Right panel → «Line balance»: what the whole line needs at full capacity vs. what it can make. «☰ Machine list» gives every machine, generator and cable, with a copy-as-text button. |
+| Line totals | Right panel → «Line totals»: machines, energy now and at full, generator output, fuel burned, what comes in and what goes out. The same totals are shown for a selected block and for any selection of nodes. «Line balance» compares what the line needs at full capacity with what it can make; click a row to outline its nodes. «☰ Machine list» gives every machine, generator and cable, with a copy-as-text button. |
+| Problems and fixes | The «⚠ N» badge opens the problem list. Where the fix is known it is a button: «Electrolyzer: machines 1 → 5», «Generators 2 → 3», a cable that can carry the current, «+ Storage» for a loose output. Hover a red number or a load bar to see what limits it. |
+| Find recipes fast | Hover any icon and press **R** (recipes that make it) or **U** (recipes that use it). Favourites (☆) and recently opened items are listed under the empty search box. |
 | **Blocks** | Select several nodes (Ctrl/Shift + click, or Shift + drag a frame) → «▦ Make block» (Ctrl+G). Links crossing the border become the block's inputs and outputs. Double-click a block to edit its inside, «⤴ Leave block» or Esc to go back. |
-| Undo / save | Ctrl+Z / Ctrl+Y, Ctrl+S saves into `projects/`. «Export» downloads a file you can share. |
+| Copy and arrange | Ctrl+C / Ctrl+V copy nodes (also into another schematic), Ctrl+D duplicates, **L** or «⇶» arranges the line left to right. Zoomed out, each card shows only its name, load and status; «Labels» (bottom left) can hide the link numbers except where there is a problem. |
+| Undo / save | Ctrl+Z / Ctrl+Y, Ctrl+S saves into `projects/`, Ctrl+O opens. A ● next to the name means changes since the last save. «Versions» keeps named copies inside the schematic file. «Export» downloads a file you can share, «PNG» saves a picture. |
 
 ### How it calculates
 

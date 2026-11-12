@@ -15,12 +15,14 @@
     <button data-tb="save" title="Сохранить в projects/ (Ctrl+S)">Сохранить</button>
     <button data-tb="export" title="Скачать файл схемы">Экспорт</button>
     <button data-tb="import" title="Загрузить файл схемы">Импорт</button>
+    <button data-tb="png" title="Сохранить картинку схемы (PNG)">PNG</button>
     <button data-tb="demo" title="Пример с условными значениями источников">Демо</button>
   </div>
   <div class="tbgroup">
     <button id="undo" data-tb="undo" title="Отменить (Ctrl+Z)">↶</button>
     <button id="redo" data-tb="redo" title="Повторить (Ctrl+Y)">↷</button>
-    <button data-tb="fit" title="Вписать схему (F)">⤢ Вписать</button>
+    <button data-tb="fit" title="Вписать схему (F)">⤢</button>
+    <button data-tb="arrange" title="Расставить узлы по потоку слева направо (L); при выделении — только выделенные">⇶</button>
   </div>
   <div class="tbgroup">
     <button data-tb="splitter" title="Добавить разветвитель">+ Разветвитель</button>
@@ -37,10 +39,11 @@
     <label class="tbchk" title="Учитывать энергию: генераторы, кабели, потери. Выключено — схема считается без энергии"><input type="checkbox" id="energyOn"> ⚡ Энергия</label>
     <button data-tb="machines" title="Сводный список всех машин, генераторов и кабелей схемы">☰ Список машин</button>
   </div>
-  <div class="tbgroup"><label title="Язык интерфейса">Интерфейс <select id="uilang"><option value="ru">Русский</option><option value="en">English</option></select></label></div>
-  <div class="tbgroup"><label title="Язык названий предметов и машин">Названия <select id="lang"><option value="ru">русские</option><option value="en">английские</option></select></label></div>
-  <div class="tbgroup"><label>Единицы <select id="unit"><option value="s">в секунду</option><option value="min">в минуту</option><option value="h">в час</option></select></label></div>
+  <div class="tbgroup"><label title="Язык интерфейса"><span class="tbl">Интерфейс</span> <select id="uilang"><option value="ru">Русский</option><option value="en">English</option></select></label></div>
+  <div class="tbgroup"><label title="Язык названий предметов и машин"><span class="tbl">Названия</span> <select id="lang"><option value="ru">русские</option><option value="en">английские</option></select></label></div>
+  <div class="tbgroup"><label title="Единицы скорости"><span class="tbl">Единицы</span> <select id="unit"><option value="t">за тик</option><option value="s">в секунду</option><option value="min">в минуту</option><option value="h">в час</option></select></label></div>
   <div class="tbgroup"><button data-tb="setup" title="Данные рецептов, язык, папка Minecraft">⚙ Настройка</button></div>
+  <button id="probs" class="badge warn" data-tb="probs" hidden></button>
   <div id="badges"></div>
 </header>
 <main>

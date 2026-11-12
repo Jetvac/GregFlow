@@ -273,7 +273,7 @@ table.bal th { font-size: 10.5px; }
 table.bal td.num { text-align: right; white-space: nowrap; }
 table.bal td.num small { white-space: normal; }
 /* the name takes whatever width is left, so the numbers are never cut off at the panel edge */
-table.bal td.bname { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.bal td.bname { width: 100%; overflow-wrap: anywhere; }
 table.bal td.bad { color: #ffb1ab; font-weight: 600; }
 table.bal td.good { color: #8fd18f; }
 .problems li.loopleak a { color: #ffb1ab; font-weight: 600; }
@@ -301,3 +301,43 @@ body.inblock #ptitle { color: var(--text); background: #233046ee; padding: 2px 1
 .progress > div { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--ok); transition: width .3s; }
 .progress > span { position: relative; font-size: 11px; padding: 0 6px; line-height: 18px; }
 .installs .li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #2c2f35; font-size: 12px; }
+
+/* ---------- QoL: problems & fixes, totals, zoomed-out view, labels ---------- */
+#probs { cursor: pointer; margin-left: auto; font-weight: 600; }
+#probs + #badges { margin-left: 0; }
+ul.problems li { margin: 3px 0; }
+.fixes { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 5px; }
+button.fix { font-size: 11px; padding: 1px 7px; border-color: #2f74c2; background: #1d3553; color: #cfe4ff; }
+button.fix:hover { background: #24456b; }
+.note button.fix { margin-left: 4px; }
+#props h5 { margin: 8px 0 2px; font-size: 11px; color: var(--muted); font-weight: 600; }
+table.bal tr[data-hlres] { cursor: pointer; }
+table.bal tr[data-hlres]:hover td { background: #2b2e34; }
+table.bal tr.hl td { background: #1d3553; }
+.node.hlres { box-shadow: 0 0 0 3px #5aa9ff, 0 0 18px #5aa9ff88; }
+.qhelp { display: inline-block; width: 14px; height: 14px; line-height: 13px; text-align: center; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); font-size: 10px; cursor: help; vertical-align: 1px; }
+.vrow { margin: 4px 0; }
+.vrow input { flex: 1; width: auto; }
+ul.versions { list-style: none; padding: 0; margin: 4px 0; font-size: 12px; }
+ul.versions li { display: flex; gap: 6px; align-items: center; padding: 3px 0; border-bottom: 1px solid var(--line); }
+ul.versions li span { flex: 1; }
+.dirty { color: var(--warn); }
+h5.qh { margin: 8px 6px 2px; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.canvhud { position: absolute; left: 8px; bottom: 6px; z-index: 4; }
+.canvhud button { font-size: 11px; padding: 1px 8px; background: #22242acc; }
+.util.low div { background: repeating-linear-gradient(135deg, #c0504a 0 6px, #a8433e 6px 12px); }
+/* zoomed out: one big summary per card instead of the details */
+.nsum { display: none; }
+#canvas.lod .node > :not(.nsum) { visibility: hidden; }
+#canvas.lod .nsum { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: absolute; inset: 0; padding: 4px;
+  font-size: calc(13px * var(--iz, 1)); line-height: 1.15; background: #c6c6c6; border-radius: 2px; overflow: hidden; }
+#canvas.lod .nsum b { overflow-wrap: anywhere; }
+#canvas.lod .nsum span { font-size: 1.25em; font-weight: 700; }
+#canvas.lod .nsum.ok span { color: #1f6b30; }
+#canvas.lod .nsum.warn { background: #e2c9c6; }
+#canvas.lod .nsum.warn span { color: #9b2c25; }
+#canvas.lod .nsum.bad { background: #f0b6b0; }
+#canvas.lod .nsum.bad span { color: #8d1b14; }
+#canvas.lod .lod-keep, #canvas.lod .elabel.deficit { display: block; }
+/* keep the toolbar on one line: select captions only on wide screens (tooltips say what they are) */
+@media (max-width: 2100px) { #toolbar .tbl { display: none; } }
