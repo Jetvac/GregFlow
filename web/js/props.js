@@ -242,8 +242,8 @@ export class PropsPanel {
   nodeView(n) {
     const { project: p, results: R } = this.app;
     const s = R?.nodes[n.id];
-    const ico = { machine: '⚒', generator: '⚡', source: '⭲', sink: '▣', splitter: '⑂', merger: '⋈', group: '▦', gin: '⇥', gout: '⇤' }[n.type] || '•';
-    let h = `<h3 class="t-${n.type}"><span class="hico">${ico}</span>${esc(NODE_TYPES[n.type])}</h3>`;
+    const ico = n.bus ? '═' : { machine: '⚒', generator: '⚡', source: '⭲', sink: '▣', splitter: '⑂', merger: '⋈', group: '▦', gin: '⇥', gout: '⇤' }[n.type] || '•';
+    let h = `<h3 class="t-${n.type}"><span class="hico">${ico}</span>${esc(n.bus ? $t('Шина') : NODE_TYPES[n.type])}</h3>`;
     h += `<label>${$t("Подпись")} <input data-f="label" value="${esc(lbl(n.label) || '')}" placeholder="${n.type === 'machine' ? esc(mname(recipeOf(p, n)?.machine)) : ''}"></label>`;
     if (n.type === 'machine') h += this.machineView(n, s);
     if (n.type === 'generator') h += this.generatorView(n, s);
@@ -268,6 +268,9 @@ export class PropsPanel {
         <tr><th>${$t("Потребность ниже")}</th><td>${rate(this.downDemand(n), n.resource?.kind)}</td></tr></table>
         ${this.outputsTable(n, s)}
         <div class="note">${n.type === 'splitter' ? $t('Распределение по выходам задаётся на каждой исходящей связи: «авто» (по потребности) или фиксированная доля %.') : $t('Слияние суммирует все входящие потоки одного ресурса.')}</div>`;
+      if (n.bus) h += `<label>${$t('Направление шины')} <select data-f="busdir"><option value="h">${$t('горизонтально')}</option><option value="v" ${n.bus.dir === 'v' ? 'selected' : ''}>${$t('вертикально')}</option></select></label>
+        <div class="note small">${$t('Шина считается как разветвитель. Ветку тяните от шины к входу потребителя (или от входа к шине) — она отойдёт от ближайшей точки шины. Перемещайте шину за подпись, длину меняйте белым квадратиком на конце. Шины можно соединять друг с другом.')}</div>`;
+      if (n.type === 'splitter') h += `<div class="btnrow"><button data-act="busmode">${n.bus ? $t('Показать как разветвитель') : $t('Показать как шину')}</button></div>`;
     }
     if (n.type === 'sink') {
       const list = this.app.sinkContents(n.id);
@@ -653,6 +656,7 @@ export class PropsPanel {
       <label>${$t("Правило для этой связи")}
         <select data-f="sharemode"><option value="auto" ${e.share == null || e.share === '' ? 'selected' : ''}>${$t("Авто — по потребности")}</option><option value="fixed" ${e.share != null && e.share !== '' ? 'selected' : ''}>${$t("Фиксированная доля, %")}</option></select></label>
       ${e.share != null && e.share !== '' ? `<label>${$t("Доля, %")} <input type="number" min="0" max="100" step="any" data-f="share" value="${e.share}"></label>` : ''}
+      ${siblings.length > 1 && !findNode(p, e.from.node)?.bus ? `<div class="btnrow"><button data-act="tobus" title="${$t('Все связи с этого выхода пойдут через новую шину: одна линия и короткие ветки к потребителям. Расчёт не меняется.')}">${$t('═ Пустить связи с этого выхода через шину')} (${siblings.length})</button></div>` : ''}
       ${siblings.length > 1 ? `<table class="io"><tr><th>${$t("связь с того же выхода")}</th><th>${$t("правило")}</th><th>${$t("поток")}</th></tr>${siblings.map(x => {
         const sx = R?.edges[x.id];
         return `<tr class="${x.id === e.id ? 'cur' : ''}"><td><a href="#" data-sel-edge="${x.id}">${esc(this.nodeName(x.to.node))}</a></td><td>${x.share != null && x.share !== '' ? num(+x.share) + '%' : $t('авто')}</td><td>${sx ? rate(sx.offered, k) : ''}</td></tr>`;
@@ -718,6 +722,7 @@ export class PropsPanel {
         if (f === 'euPct') n.euPct = +t.value > 0 ? +t.value : undefined;
         if (f === 'coil') n.coil = t.value === '' ? undefined : +t.value;
         if (f === 'heat') n.heat = +t.value > 0 ? Math.floor(+t.value) : undefined;
+        if (f === 'busdir' && n.bus) n.bus.dir = t.value === 'v' ? 'v' : 'h';
         if (f === 'cycleOverride') n.cycleOverride = t.value === '' ? undefined : Math.max(0, +t.value);
         if (f === 'rate') n.rate = Math.max(0, fromUnit(+t.value || 0));
       });
@@ -832,6 +837,8 @@ export class PropsPanel {
     if (act === 'png') app.exportPng();
     if (act === 'addgen') app.addSimple('generator');
     if (act === 'togen') app.convertToGenerator(app.selection.id);
+    if (act === 'tobus') app.linksToBus(app.selection.id);
+    if (act === 'busmode') app.mutate(q => { const n = findNode(q, app.selection.id); if (n.bus) delete n.bus; else n.bus = { dir: 'h', len: 400 }; });
     if (act === 'tocustom') {
       const n = findNode(app.project, app.selection.id);
       app.editCustom(recipeOf(app.project, n), recipeOf(app.project, n).dataset !== 'custom');

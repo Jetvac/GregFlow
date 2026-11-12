@@ -14,7 +14,7 @@ async function req(method, path, body, raw = false) {
   return learnFrom(data);
 }
 /** Must match APP_VERSION in server/app.py (checked by the tests). */
-export const CLIENT_VERSION = '1.1.1';
+export const CLIENT_VERSION = '1.1.2';
 const qs = o => Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
 
 export const api = {

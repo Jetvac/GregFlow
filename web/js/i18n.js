@@ -54,7 +54,7 @@ const SERVER_PREFIX = [
 const SERVER_SUFFIX = [[' не найден — скачайте данные рецептов в окне «Настройка».', ' not found — download the recipe data in the «Setup» window.']];
 
 /** Default node labels are stored in Russian (stable); show them in the interface language. */
-const DEFAULT_LABELS = new Set(['Источник', 'Склад', 'Генератор', 'Блок', 'Вход', 'Выход', 'Разветвитель', 'Слияние']);
+const DEFAULT_LABELS = new Set(['Источник', 'Склад', 'Генератор', 'Блок', 'Вход', 'Выход', 'Разветвитель', 'Слияние', 'Шина']);
 export const lbl = s => (s && DEFAULT_LABELS.has(s) ? $t(s) : s);
 
 /** Translate static text and titles of the page (index.html). */
@@ -537,4 +537,19 @@ const EN = {
   'топливо генераторов': 'generator fuel',
   'топливо и всё от источников': 'fuel and everything from sources',
   'Длинные связи можно показывать короткими метками у обоих концов: у входа — откуда идёт, у выхода — сколько связей. Наведите на метку — видна линия; при выборе узла его связи рисуются полностью. Для отдельной связи это меняется в её свойствах.': 'Long links can be drawn as short tags at both ends: the input shows where it comes from, the output how many links leave. Hover a tag to see the line; selecting a node draws its links in full. A single link can be changed in its properties.',
+  'Шина': 'Bus',
+  'Вход шины': 'Bus input',
+  'Шина. Протяните ветку от шины к входу потребителя (или от входа к шине) — она отойдёт от ближайшей точки.': 'Bus. Drag a branch from the bus to a consumer input (or from the input to the bus); it leaves from the nearest point.',
+  'Тяните за подпись, чтобы переместить шину': 'Drag the label to move the bus',
+  'Тяните, чтобы изменить длину шины': 'Drag to change the bus length',
+  'Связи переведены на шину. Перетащите шину за подпись, длину меняйте квадратиком на конце.': 'Links moved onto a bus. Drag the bus by its label; change its length with the square at the end.',
+  'Направление шины': 'Bus direction',
+  'горизонтально': 'horizontal',
+  'вертикально': 'vertical',
+  'Шина считается как разветвитель. Ветку тяните от шины к входу потребителя (или от входа к шине) — она отойдёт от ближайшей точки шины. Перемещайте шину за подпись, длину меняйте белым квадратиком на конце. Шины можно соединять друг с другом.': 'A bus is calculated like a splitter. Drag a branch from the bus to a consumer input (or from the input to the bus); it leaves from the nearest point of the bus. Move the bus by its label, change its length with the white square at the end. Buses can feed each other.',
+  'Показать как разветвитель': 'Show as a splitter',
+  'Показать как шину': 'Show as a bus',
+  'Все связи с этого выхода пойдут через новую шину: одна линия и короткие ветки к потребителям. Расчёт не меняется.': 'All links from this output go through a new bus: one line with short branches to the consumers. The calculation does not change.',
+  '═ Пустить связи с этого выхода через шину': '═ Route links from this output through a bus',
+  'Общая линия, от которой отходят ветки к потребителям (например топливо к генераторам)': 'A shared line with branches to consumers (for example fuel to generators)',
 };

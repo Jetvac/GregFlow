@@ -88,7 +88,7 @@ export class Canvas {
       if (!h) continue;
       if (hl?.has(n.id)) h = h.replace('class="node ', 'class="node hlres ');
       const i = h.lastIndexOf('</div>');
-      html.push(h.slice(0, i) + this.nsumHtml(p, n, R?.nodes[n.id], bad.has(n.id)) + h.slice(i));
+      html.push(h.slice(0, i) + (n.bus ? '' : this.nsumHtml(p, n, R?.nodes[n.id], bad.has(n.id))) + h.slice(i));
     }
     this.nlayer.innerHTML = html.join('');
     this.measurePorts();
@@ -159,6 +159,7 @@ export class Canvas {
         <div class="nhead"><span class="ntitle">⇥ ${esc(lbl(n.label))}</span>${demo}</div>
         <div class="prow out ${x && !x.connected ? 'unconn' : x?.unrouted > 0 ? 'partial' : ''}"><div class="ptext"><b>${rate(n.rate, res?.kind)}</b><small>${esc(nm(res) || '—')}${x && !x.connected ? $t(' · не подключён') : ''}</small></div>${slotHtml({ ...res, amount: null }, ds)}<div class="port out" data-node="${n.id}" data-port="out"></div></div></div>`;
     }
+    if (n.type === 'splitter' && n.bus) return this.busHtml(n, s, cls, ds);
     if (n.type === 'splitter' || n.type === 'merger') {
       const res = n.resource;
       const tin = s?.inputs.in?.supplied ?? 0;
@@ -229,6 +230,23 @@ export class Canvas {
     const load = u != null ? `${num(u * 100, 0)}%` : n.type === 'source' ? rate(n.rate, n.resource?.kind) : '';
     const name = esc(nodeLabel(p, n.id));
     return `<div class="nsum ${st}" title="${name}${cnt}"><div class="nsi"><b>${name}${cnt}</b>${load ? `<span>${load}${bad ? ' ⚠' : ''}</span>` : bad ? '<span>⚠</span>' : ''}</div></div>`;
+  }
+
+  /** Bus: a splitter drawn as a line. Branches leave from the nearest point of the line. */
+  busHtml(n, s, cls, ds) {
+    const v = n.bus.dir === 'v', L = busLen(n), res = n.resource;
+    const x = s?.inputs.in;
+    const short = x && x.connected && x.supplied < x.need * (1 - 1e-7);
+    cls.push('busnode', v ? 'v' : 'h');
+    if (res?.kind === 'fluid') cls.push('fluid');
+    if (short) cls.push('short');
+    const size = v ? `width:${BUS_W}px;height:${L}px` : `width:${L}px;height:${BUS_W}px`;
+    const info = res ? `${rate(x?.supplied ?? 0, res.kind)}${x && x.need > 0 ? ' / ' + rate(x.need, res.kind) : ''}` : $t('тип по первой связи');
+    return `<div class="${cls.join(' ')}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px;${size}">
+      <div class="port in" data-node="${n.id}" data-port="in" title="${$t('Вход шины')}"></div>
+      <div class="busbar port out" data-node="${n.id}" data-port="out" title="${$t('Шина. Протяните ветку от шины к входу потребителя (или от входа к шине) — она отойдёт от ближайшей точки.')}"></div>
+      <div class="buslabel" title="${$t('Тяните за подпись, чтобы переместить шину')}">${res ? iconHtml(res, ds, 'small') : ''}<b>${esc(lbl(n.label) || $t('Шина'))}</b><span class="${short ? 'bad' : ''}">${short ? '⚠ ' : ''}${info}</span></div>
+      <div class="bushandle" title="${$t('Тяните, чтобы изменить длину шины')}"></div></div>`;
   }
 
   groupHtml(p, n, s, cls, st, ds) {
@@ -310,7 +328,9 @@ export class Canvas {
         continue;
       }
       let d, m;
-      if (e.energy) ({ d, m } = pipe(a, b, boxes.get(e.from.node), boxes.get(e.to.node), lane++));
+      const fb = byId.get(e.from.node);
+      if (fb?.bus && !e.energy) ({ d, m } = busTap(busLine(fb), b));
+      else if (e.energy) ({ d, m } = pipe(a, b, boxes.get(e.from.node), boxes.get(e.to.node), lane++));
       else if (b.x < a.x + 40) {
         // backward link (typical for loops): go out right, run below both nodes, come in from the left
         const ba = boxes.get(e.from.node), bb = boxes.get(e.to.node);
@@ -406,6 +426,8 @@ export class Canvas {
       const portEl = t.closest('.port');
       const nodeEl = t.closest('.node');
       const edgeId = t.dataset?.edge || t.closest('.elabel')?.dataset.edge;
+      const hdl = t.closest('.bushandle');
+      if (ev.button === 0 && hdl) return this.startBusResize(ev, hdl.closest('.node').dataset.id);
       const tagNode = t.closest('[data-node-sel]')?.dataset.nodeSel;
       if (ev.button === 0 && tagNode) { this.app.select({ type: 'node', id: tagNode }); return; }
       if (t.closest('[data-enter]')) { ev.preventDefault(); this.app.enterBlock(t.closest('[data-enter]').dataset.enter); return; }
@@ -511,6 +533,30 @@ export class Canvas {
     window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
   }
 
+  startBusResize(ev, id) {
+    ev.stopPropagation();
+    const n = findNode(this.app.project, id);
+    const el = this.nlayer.querySelector(`.node[data-id="${id}"]`);
+    if (!n?.bus || !el) return;
+    let moved = false;
+    if (!(this.app.selection?.type === 'node' && this.app.selection.id === id)) this.app.select({ type: 'node', id });
+    const mv = e => {
+      const w = this.toWorld(e.clientX, e.clientY);
+      const len = Math.max(60, Math.round((n.bus.dir === 'v' ? w.y - n.y : w.x - n.x) / 10) * 10);
+      if (len === n.bus.len) return;
+      if (!moved) { this.app.history.push(this.app.root); moved = true; }
+      n.bus.len = len;
+      const cur = this.nlayer.querySelector(`.node[data-id="${id}"]`);
+      if (cur) cur.style[n.bus.dir === 'v' ? 'height' : 'width'] = len + 'px';
+      this.measurePorts(); this.renderEdges();
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
+      if (moved) this.app.changed({ solve: false });
+    };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  }
+
   startConnect(ev, portEl) {
     ev.stopPropagation();
     const src = { node: portEl.dataset.node, port: portEl.dataset.port, dir: portEl.classList.contains('out') ? 'out' : 'in' };
@@ -564,12 +610,30 @@ function pipe(a, b, ba, bb, lane) {
 /** Should this link be drawn as tags? Per-link choice first, then the View setting:
  *  'fuel' — fuel into generators, 'sources' — also everything leaving a source or block input. */
 export function isTagEdge(e, byId, mode) {
-  if (e.energy || e.view === 'line') return false;
+  if (e.energy || e.view === 'line' || byId.get(e.from.node)?.bus) return false;
   if (e.view === 'tag') return true;
   if (mode === 'none') return false;
   if (byId.get(e.to.node)?.type === 'generator' && e.to.port === 'f') return true;
   const t = byId.get(e.from.node)?.type;
   return mode === 'sources' && (t === 'source' || t === 'gin');
+}
+
+const BUS_W = 12;
+const busLen = n => Math.max(60, n.bus?.len || 400);
+/** Centre line of a bus in world coordinates. */
+function busLine(n) {
+  const L = busLen(n), h = BUS_W / 2;
+  return n.bus.dir === 'v' ? { v: true, x0: n.x + h, y0: n.y, x1: n.x + h, y1: n.y + L } : { v: false, x0: n.x, y0: n.y + h, x1: n.x + L, y1: n.y + h };
+}
+/** Branch from the bus to an input port: leaves the bus at a right angle and enters the port from the left. */
+function busTap(L, b) {
+  const hx = b.x - 24;
+  if (!L.v) {
+    const tx = Math.min(Math.max(hx, L.x0 + 4), L.x1 - 4);
+    return { d: `M${tx},${L.y0} H${hx} V${b.y} H${b.x}`, m: { x: hx, y: (L.y0 + b.y) / 2 } };
+  }
+  const ty = Math.min(Math.max(b.y, L.y0 + 4), L.y1 - 4);
+  return { d: `M${L.x0},${ty} H${hx} V${b.y} H${b.x}`, m: { x: (L.x0 + hx) / 2, y: ty } };
 }
 
 function curve(a, b) {

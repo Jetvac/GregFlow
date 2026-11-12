@@ -715,10 +715,36 @@ class App {
     const wasOn = M.energyOn(this.project);
     this.mutate(p => {
       if (type === 'generator' && !wasOn) p.energy = { ...(p.energy || {}), enabled: true };
-      n = M.addNode(p, { type, ...this.placeAt() });
+      n = type === 'bus' ? M.addNode(p, { type: 'splitter', label: 'Шина', bus: { dir: 'h', len: 400 }, ...this.placeAt() }) : M.addNode(p, { type, ...this.placeAt() });
     });
     if (type === 'generator' && !wasOn) this.toast($t('Учёт энергии включён'));
     this.select({ type: 'node', id: n.id });
+  }
+
+  /** Move every link leaving the output of edge `edgeId` onto a new bus fed by that output. */
+  linksToBus(edgeId) {
+    const p0 = this.project, e0 = M.edge(p0, edgeId);
+    if (!e0 || e0.energy) return;
+    const from = { ...e0.from };
+    const pp = this.canvas.portPos;
+    const a = pp.get(from.node + '|' + from.port) || { x: 0, y: 0 };
+    const pts = p0.edges.filter(e => e.from.node === from.node && e.from.port === from.port).map(e => pp.get(e.to.node + '|' + e.to.port)).filter(Boolean);
+    const xs = pts.map(t => t.x);
+    const snap = v => Math.round(v / 10) * 10;
+    // above every consumer (clear of their cards), starting just right of the source
+    const x = snap(a.x + 60), y = snap(Math.min(a.y, ...pts.map(t => t.y - 80)));
+    const len = Math.max(200, snap(Math.max(x + 200, ...xs) - x));
+    let bus = null, err = null;
+    this.mutate(q => {
+      const moved = q.edges.filter(e => e.from.node === from.node && e.from.port === from.port);
+      bus = M.addNode(q, { type: 'splitter', label: 'Шина', bus: { dir: 'h', len }, x, y });
+      const c = M.connect(q, from, { node: bus.id, port: 'in' });
+      if (!c.ok) { err = c.reason; M.removeNode(q, bus.id); bus = null; return; }
+      for (const e of moved) e.from = { node: bus.id, port: 'out' };
+    });
+    if (err) { this.toast(err, 'error'); return; }
+    this.select({ type: 'node', id: bus.id });
+    this.toast($t('Связи переведены на шину. Перетащите шину за подпись, длину меняйте квадратиком на конце.'));
   }
 
   deleteSelection() {
@@ -1068,7 +1094,7 @@ class App {
       if (a === 'undo') this.undo();
       if (a === 'redo') this.redo();
       if (a === 'fit') this.canvas.fit();
-      if (['splitter', 'merger', 'sink', 'generator', 'gin', 'gout'].includes(a)) this.addSimple(a);
+      if (['splitter', 'merger', 'sink', 'generator', 'gin', 'gout', 'bus'].includes(a)) this.addSimple(a);
       if (a === 'group') this.groupSelection();
       if (a === 'machines') this.machineListDialog();
       if (a === 'arrange') this.arrangeNodes();

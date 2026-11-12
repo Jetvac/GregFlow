@@ -23,7 +23,7 @@ export const prefs = {
   labels: () => get(LABELS, 'all'),
   setLabels(v) { set(LABELS, v); },
   /** Which links are drawn as short tags: 'none' | 'fuel' | 'sources'. */
-  edgeTags: () => get(TAGS, 'fuel'),
+  edgeTags: () => get(TAGS, 'none'),
   setEdgeTags(v) { set(TAGS, v); },
   armSlots: () => get(ARM, true),
   setArmSlots(v) { set(ARM, !!v); },

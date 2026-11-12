@@ -225,6 +225,25 @@ table.io.ed input[type=number] { width: 80px; }
 .ntier { background: #2f6fb3; color: #fff; border-radius: 3px; padding: 0 5px; font-size: 11px; }
 .nloop { color: #0f6b6b; font-size: 13px; }
 .elabel.loop { border-style: dashed; }
+.node.busnode { min-width: 0; background: none; border: none; box-shadow: none; border-radius: 0; cursor: default; }
+.node.busnode .busbar { position: absolute; inset: 0; width: auto; height: auto; margin: 0; border-radius: 5px; border: 2px solid #15161a; background: #c9b77a; cursor: crosshair; z-index: 1; }
+.node.busnode.fluid .busbar { background: repeating-linear-gradient(90deg, #7fb2dd 0 16px, #5b8fbf 16px 22px); }
+.node.busnode.v.fluid .busbar { background: repeating-linear-gradient(180deg, #7fb2dd 0 16px, #5b8fbf 16px 22px); }
+.node.busnode.short .busbar { border-color: var(--bad); }
+.node.busnode .busbar:hover { transform: none; filter: brightness(1.2); }
+.node.busnode .busbar.compatible { box-shadow: 0 0 0 3px #7ee08a; }
+.node.busnode.selected { box-shadow: none; }
+.node.busnode.selected .busbar { box-shadow: 0 0 0 2px var(--accent); }
+.node.busnode .port.in { position: absolute; margin: 0; }
+.node.busnode.h .port.in { left: -16px; top: -1px; }
+.node.busnode.v .port.in { top: -16px; left: -1px; }
+.node.busnode .buslabel { position: absolute; display: flex; gap: 5px; align-items: center; white-space: nowrap; font-size: 11px; color: #d8dbe0; background: #101114e6; border: 1px solid #5a5a5a; border-radius: 3px; padding: 1px 6px; cursor: move; z-index: 2; }
+.node.busnode .buslabel .bad { color: #ffb3ad; }
+.node.busnode.h .buslabel { left: 6px; bottom: 16px; }
+.node.busnode.v .buslabel { left: 18px; top: 0; }
+.node.busnode .bushandle { position: absolute; width: 12px; height: 12px; background: #eee; border: 2px solid #15161a; border-radius: 2px; cursor: ew-resize; z-index: 3; }
+.node.busnode.h .bushandle { right: -8px; top: -2px; }
+.node.busnode.v .bushandle { bottom: -8px; left: -2px; cursor: ns-resize; }
 path.edge.ghost { display: none; opacity: .85; }
 path.edge.ghost.peek { display: inline; stroke-width: 3; }
 path.edge.tagstub { stroke-width: 3; }
