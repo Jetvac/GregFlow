@@ -344,6 +344,32 @@ test('энергия: потери в кабеле 4 блока × 1 EU/А и р
   assert(r.edges[fe.id].affected.some(a => a.node === m.id), 'machine listed as affected by fuel deficit');
 });
 
+test('энергия по запросу: мощность, которую не берёт простаивающая машина, достаётся другой', () => {
+  const p = build([ELEC]);
+  p.energy = { enabled: true };
+  const g = M.addNode(p, { type: 'generator', voltage: 32, amps: 1, count: 1 }); // 32 EU/t for 2 × 25 EU/t
+  const mk = rate => {
+    const s = M.addNode(p, { type: 'source', resource: it('i:sand', 1), rate: per(rate) });
+    const m = M.addNode(p, { type: 'machine', recipeId: 'test:elec', count: 1 }); // 19.2 sand/min at full load
+    M.connect(p, { node: s.id, port: 'out' }, { node: m.id, port: 'i0' });
+    M.connect(p, { node: g.id, port: 'eo' }, { node: m.id, port: 'ep' });
+    m.src = s;
+    return m;
+  };
+  const full = mk(100), starved = mk(1.92); // the second one has sand for 10% load
+  let r = solve(p);
+  eq(r.nodes[starved.id].util, 0.1, 'starved machine: limited by sand');
+  eq(r.nodes[full.id].util, 1, 'the other machine gets the power the starved one does not draw');
+  eq(r.nodes[g.id].output, 27.5, 'generator gives 25 + 2.5 EU/t');
+  assert(r.nodes[starved.id].limitedBy === 'i0', 'starved machine is limited by sand, not by power');
+  assert(!Object.values(r.edges).some(e => e.energy && e.status === 'deficit'), 'no energy link is short');
+  // both fully fed: 50 EU/t asked, 32 available → both at 64%
+  starved.src.rate = per(100);
+  r = solve(p);
+  eq(r.nodes[full.id].util, 32 / 50, 'shortage shared in proportion to requests');
+  eq(r.nodes[starved.id].util, 32 / 50, 'shortage shared in proportion to requests');
+});
+
 test('энергия выключена: генераторы не влияют, порта ⚡ нет', () => {
   const { p, m, g } = powered({ voltage: 32, amps: 1, count: 1 }, null, 0);
   p.energy.enabled = false;
@@ -520,6 +546,18 @@ test('блок: те же цифры, что и без группировки (�
     eq(r2.powerAvg, r0.powerAvg, 'ungroup restores the line');
     assert(p.nodes.filter(n => n.type === 'machine').length === 2 && !p.nodes.some(n => n.type === 'group'), 'machines back');
   }
+});
+
+test('блок: нехватка энергии делится так же, как без группировки', () => {
+  const { p, a, b, g } = line(true);
+  M.node(p, g.id).amps = 1; // 32 EU/t for 52 + 7.5 EU/t requested
+  const r0 = solve(p);
+  assert(r0.nodes[a.id].util < 0.694 - 1e-3, 'power is really short');
+  const si0 = r0.nodes[b.id].outputs.o0.actual;
+  const blk = M.groupNodes(p, [a.id, b.id]);
+  const r1 = solve(p);
+  eq(siOut(r1, p, blk.id), si0, 'Si out identical under a power shortage');
+  eq(r1.nodes[g.id].output, r0.nodes[g.id].output, 'generator output identical');
 });
 
 test('блок: выход по фактическому входу и вложенные блоки', () => {

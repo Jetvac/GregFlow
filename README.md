@@ -10,6 +10,18 @@ losses), recycling loops and blocks (a node made of nodes). The interface is in 
 It runs on your own computer in the browser. Nothing is installed into Minecraft, and your game
 files are never changed.
 
+![A demo line: an electrolyzer and a blast furnace powered by Bio Diesel generators, with the line balance on the right](docs/img/overview.png)
+
+<sub>Demo schematic: the recipes, generators and cables are real GTNH 2.8.0 data; the source rates, machine counts and cable lengths are made up for the example.</sub>
+
+<table>
+<tr>
+<td width="33%"><a href="docs/img/machine.png"><img src="docs/img/machine.png" alt="Selected machine with per-input demand and supply"></a><br><sub>Select a node to see what it needs, gets and makes, and what limits it.</sub></td>
+<td width="33%"><a href="docs/img/block.png"><img src="docs/img/block.png" alt="Several machines grouped into one block node"></a><br><sub>A block: several nodes combined into one, with its own inputs, outputs and ⚡ input.</sub></td>
+<td width="33%"><a href="docs/img/block-inside.png"><img src="docs/img/block-inside.png" alt="Inside a block"></a><br><sub>Inside the block, solved with what actually reaches its inputs.</sub></td>
+</tr>
+</table>
+
 ---
 
 ## Install and start (no programming needed)
@@ -71,8 +83,11 @@ your own recipes) from the old folder into the new one.
   goes to exactly zero instead of showing tiny leftover numbers.
 - **Blocks** are exact, not an estimate: the inside is solved with what really reaches the block's
   inputs. «Full capacity» shows what it would take and give with unlimited inputs.
-- **Energy**: a generator gives up to `V × A × count` and burns fuel only for what is drawn; a cable
-  loses `loss per block × length` EU per amp; warnings for burning cables and exploding machines.
+- **Energy**: a generator gives up to `V × A × count` and burns fuel only for what is drawn. Power
+  is delivered on demand, as in a GT network: a machine that is short of materials draws less, and
+  the rest goes to the other machines. Only when the generators cannot cover what the machines ask
+  for is the shortage shared in proportion. A cable loses `loss per block × length` EU per amp;
+  warnings for burning cables and exploding machines.
 
 Details about data sources and the models: [docs/DATA.md](docs/DATA.md).
 
@@ -103,5 +118,7 @@ planner shows the version and warns if your modpack differs. You can import your
   here; the planner downloads it from the original repository on your computer.
 - Russian names: [GTNewHorizons/GTNH-Translations](https://github.com/GTNewHorizons/GTNH-Translations) (GPL-3.0), downloaded on demand.
 - Cable table values: GregTech 5 Unofficial (GTNH team, LGPL-3.0).
+- The screenshots in `docs/img` show item and machine icons from Minecraft, GregTech and other GTNH
+  mods; those textures belong to their authors and are shown only to illustrate the planner.
 
 Not affiliated with the GTNH team or Mojang.

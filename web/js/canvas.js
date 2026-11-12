@@ -3,6 +3,10 @@ import { $t, lbl } from './i18n.js';
 import { esc, num, rate, slotHtml, iconHtml, seconds, TIERS, nm, mname, energySlotHtml } from './fmt.js';
 import { ports, recipeOf, checkConnect, node as findNode, resolveInput, energyOn, energyPorts, isEnergyRes } from './model.js';
 
+// energy is delivered on demand: a ⚡ input is short only when it got less than it asked for
+const eShort = x => x.short != null ? x.short > 1e-9 * Math.max(1, x.need) : x.supplied < x.need * (1 - 1e-7);
+const eText = x => eShort(x) ? $t('есть ') + num(x.supplied) : $t('берёт ') + num(x.used ?? x.supplied);
+
 const isSelected = (sel, id) => (sel?.type === 'node' && sel.id === id) || (sel?.type === 'nodes' && sel.ids.includes(id));
 
 const GRID = 20;
@@ -84,8 +88,8 @@ export class Canvas {
       let eRow = '';
       if (energyPorts(p) && r.gt?.eut > 0) {
         const x = s?.inputs.ep;
-        const rc = !x ? '' : !x.connected ? 'unfed' : x.supplied >= x.need * (1 - 1e-7) ? 'ok' : 'short';
-        eRow = `<div class="prow in energy ${rc}"><div class="port in energy" data-node="${n.id}" data-port="ep" title="${$t("Вход энергии: подключите генератор")}"></div>${energySlotHtml(TIERS[s?.params?.tier ?? 0], $t('Вход энергии, EU/t'))}<div class="ptext">${x ? `<b>${num(x.need)} EU/t</b><small>${x.connected ? $t('есть ') + num(x.supplied) + ' EU/t' : $t('питание не подключено')}</small>` : ''}</div></div>`;
+        const rc = !x ? '' : !x.connected ? 'unfed' : eShort(x) ? 'short' : 'ok';
+        eRow = `<div class="prow in energy ${rc}"><div class="port in energy" data-node="${n.id}" data-port="ep" title="${$t("Вход энергии: подключите генератор")}"></div>${energySlotHtml(TIERS[s?.params?.tier ?? 0], $t('Вход энергии, EU/t'))}<div class="ptext">${x ? `<b>${num(x.need)} EU/t</b><small>${x.connected ? eText(x) + ' EU/t' : $t('питание не подключено')}</small>` : ''}</div></div>`;
       }
       const outs = r.outputs.map((e, i) => {
         const pid = 'o' + i, x = s?.outputs[pid];
@@ -145,7 +149,7 @@ export class Canvas {
         <div class="nbody"><div class="ncol">${fin}</div><div class="narrow">➜</div><div class="ncol">${eRow}${outs}</div></div>
         <div class="nfoot">${num(n.voltage)} ${$t("В ×")} ${num(n.amps ?? 1)} ${$t("А")}${n.efficiency != null && n.efficiency !== '' ? ` ${$t("· КПД")} ${num(+n.efficiency)}%` : ''}</div>
         ${s?.idle ? `<div class="gidle">0 EU/t: ${esc(s.idle)}</div>` : ''}
-        ${u != null ? `<div class="util ${s.fuelRatio < 1 - 1e-7 ? 'low' : ''}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("нагрузка")} ${num(u * 100, 1)}%${s.fuelRatio < 1 - 1e-7 ? $t(' · мало топлива') : ''}</span></div>` : ''}</div>`;
+        ${u != null ? `<div class="util ${s.fuelLimits ? 'low' : ''}"><div style="width:${Math.min(100, u * 100)}%"></div><span>${$t("нагрузка")} ${num(u * 100, 1)}%${s.fuelLimits ? $t(' · мало топлива') : ''}</span></div>` : ''}</div>`;
     }
     if (n.type === 'group') return this.groupHtml(p, n, s, cls, st, ds);
     if (n.type === 'gin') {
@@ -184,8 +188,8 @@ export class Canvas {
       const x = pt.dir === 'in' ? s?.inputs[pt.id] : s?.outputs[pt.id];
       if (pt.energy) {
         if (pt.dir === 'in') {
-          const rc = !x ? '' : !x.connected ? 'unfed' : x.supplied >= x.need * (1 - 1e-7) ? 'ok' : 'short';
-          return `<div class="prow in energy ${rc}"><div class="port in energy" data-node="${n.id}" data-port="ep" title="${$t("Вход энергии блока")}"></div>${energySlotHtml(TIERS[s?.params?.tier ?? 0], $t('Вход энергии блока, EU/t'))}<div class="ptext">${x ? `<b>${num(x.need)} EU/t</b><small>${x.connected ? $t('есть ') + num(x.supplied) : $t('питание не подключено')}</small>` : ''}</div></div>`;
+          const rc = !x ? '' : !x.connected ? 'unfed' : eShort(x) ? 'short' : 'ok';
+          return `<div class="prow in energy ${rc}"><div class="port in energy" data-node="${n.id}" data-port="ep" title="${$t("Вход энергии блока")}"></div>${energySlotHtml(TIERS[s?.params?.tier ?? 0], $t('Вход энергии блока, EU/t'))}<div class="ptext">${x ? `<b>${num(x.need)} EU/t</b><small>${x.connected ? eText(x) : $t('питание не подключено')}</small>` : ''}</div></div>`;
         }
         return `<div class="prow out energy ${x && !x.connected ? 'unconn' : ''}"><div class="ptext"><b>${num(s?.output || 0)} EU/t</b><small>${$t("макс")} ${num(s?.capacity || 0)} EU/t</small></div>${energySlotHtml('', $t('Выход энергии блока'))}<div class="port out energy" data-node="${n.id}" data-port="eo"></div></div>`;
       }

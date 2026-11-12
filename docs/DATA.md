@@ -83,7 +83,12 @@ shown. Vanilla Minecraft items stay English (their translation ships only with t
   For solid fuel the meaning depends on the generator, so it is entered manually. Steam turbines use
   the steam consumption from their tooltip.
 - **Loss model**: every amp loses `loss per block × length` EU; the machine receives `V − loss·length`;
-  the generator sends `need × V / Vd`. Not modelled: transformers, batteries, multi-amp input,
+  the generator sends `need × V / Vd`.
+- **Distribution**: on demand, as in a GT network. Each machine asks for the EU/t it would draw at
+  its current material-limited load; a generator serves all requests up to what its capacity and
+  fuel allow, and only a real shortage is shared in proportion to the requests. A block's ⚡ input
+  is an EU/t budget shared the same way by the machines inside, so grouping never changes the
+  numbers. Not modelled: transformers, batteries, multi-amp input,
   variable turbine efficiency.
 
 ## Licenses and attribution

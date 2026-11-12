@@ -178,7 +178,7 @@ const EN = {
   '. Схема продолжает использовать снимок.': '. The schematic keeps using the snapshot.', 'снимок:': 'snapshot:', 'сейчас:': 'now:',
   'Ошибка запуска:': 'Startup error:',
   // ---- canvas.js
-  'Рецепт отсутствует': 'Recipe missing', 'не расходуется': 'not consumed', 'есть ': 'have ', 'нет подачи': 'no supply',
+  'Рецепт отсутствует': 'Recipe missing', 'не расходуется': 'not consumed', 'есть ': 'have ', 'берёт ': 'draws ', 'нет подачи': 'no supply',
   'Вход энергии: подключите генератор': 'Energy input: connect a generator', 'Вход энергии, EU/t': 'Energy input, EU/t',
   'питание не подключено': 'no power connected', 'не подключён': 'not connected', 'не распр. ': 'unrouted ', 'макс ': 'max ',
   '— с': '— s', '· рецепт': '· recipe', '· разгон ×': '· overclock ×', ' (идеальный)': ' (perfect)', 'цикл/мин (вручную)': 'cycles/min (manual)',

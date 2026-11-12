@@ -24,8 +24,11 @@
 // and burns fuel only for the EU actually drawn. An energy link carries EU from a
 // generator to a machine through `length` blocks of a cable; every amp packet loses
 // cable.loss EU per block, so the machine receives Vd = V − loss·length per amp and the
-// generator must send need × V / Vd. A machine's load is also limited by
-// delivered / needed EU. Machines without an energy link are reported, not stopped.
+// generator must send need × V / Vd. Power is delivered on demand, as in a GT network:
+// each machine asks for what it would draw at its current material-limited load, and only
+// when the generator cannot cover all requests are they scaled down proportionally. A
+// machine's load is then also limited by delivered / needed EU. Machines without an energy
+// link are reported, not stopped.
 //
 // Blocks (node type "group"): a block is solved by running its inner schematic, with the
 // block's inputs ("gin") turned into sources that deliver exactly what the outer line
@@ -61,12 +64,16 @@ function blockProject(inner, supply, EON, eReq) {
   return { q, eGouts };
 }
 
-/** Run a block's inner line for given input supplies (null = unlimited), power ratio and energy request. */
-function runBlock(n, supply, eRatio, eReq, EON, mode, analyze = false) {
+/**
+ * Run a block's inner line for given input supplies (null = unlimited), the EU/t its ⚡ input
+ * delivers (Infinity = unlimited; inner machines share it on demand) and the energy request
+ * on its ⚡ output.
+ */
+function runBlock(n, supply, eBudget, eReq, EON, mode, analyze = false) {
   const { q, eGouts } = blockProject(n.inner, supply, EON, eReq);
-  const R = solve(q, { mode, analyzeLoops: analyze, blockPower: EON ? eRatio : null });
+  const R = solve(q, { mode, analyzeLoops: analyze, blockBudget: EON ? eBudget : null });
   const used = {}, out = {};
-  let G = 0, eNeed = 0, eNeedFull = 0, tier = 0, eV = 0, uSum = 0, uN = 0, powerFull = 0, powerAvg = 0;
+  let G = 0, eNeed = 0, eNeedFull = 0, eReqNow = 0, tier = 0, eV = 0, uSum = 0, uN = 0, powerFull = 0, powerAvg = 0;
   const linked = new Set(q.edges.filter(e => e.energy).map(e => e.to.node));
   for (const x of q.nodes) {
     const s = R.nodes[x.id];
@@ -81,18 +88,18 @@ function runBlock(n, supply, eRatio, eReq, EON, mode, analyze = false) {
         powerFull += s.powerFull || 0; powerAvg += s.powerAvg || 0;
         if (s.util != null) { uSum += s.util * (x.count ?? 1); uN += x.count ?? 1; }
         if (!linked.has(x.id) && s.energyNeed > 0) {
-          eNeedFull += s.energyNeed; eNeed += s.energyNeed * (s.util || 0);
+          eNeedFull += s.energyNeed; eNeed += s.energyNeed * (s.util || 0); eReqNow += s.energyRequest ?? s.energyNeed;
           tier = Math.max(tier, s.params?.tier ?? 0);
         }
       }
     }
   }
-  return { R, q, used, out, G, eV, eNeed, eNeedFull, tier, util: uN ? uSum / uN : null, powerFull, powerAvg };
+  return { R, q, used, out, G, eV, eNeed, eNeedFull, eReqNow, tier, util: uN ? uSum / uN : null, powerFull, powerAvg };
 }
 
 /** Results of a block's inner schematic as seen from inside (for the editor). ctx comes from the parent results. */
 export function solveBlock(n, ctx, EON, mode = 'primed') {
-  const run = runBlock(n, ctx?.full ? null : (ctx?.supply || {}), ctx?.full ? 1 : (ctx?.eRatio ?? 1), ctx?.full ? Infinity : (ctx?.eReq ?? 0), EON, mode, true);
+  const run = runBlock(n, ctx?.full ? null : (ctx?.supply || {}), ctx?.full ? Infinity : (ctx?.eBudget ?? Infinity), ctx?.full ? Infinity : (ctx?.eReq ?? 0), EON, mode, true);
   return run.R;
 }
 const tol = (...v) => 1e-7 * Math.max(1, ...v.filter(Number.isFinite).map(Math.abs));
@@ -169,11 +176,11 @@ export function solve(p, opts = {}) {
   }
   const nodeInfo = new Map();
   const blockCache = new Map();
-  const evalBlock = (n, supply, eRatio, eReq) => {
-    const k = n.id + JSON.stringify([supply, eRatio, eReq]);
+  const evalBlock = (n, supply, eBudget, eReq) => {
+    const k = n.id + JSON.stringify([supply, Number.isFinite(eBudget) ? eBudget : 'inf', eReq]);
     if (!blockCache.has(k)) {
       if (blockCache.size > 4000) blockCache.clear();
-      blockCache.set(k, runBlock(n, supply, eRatio, eReq, EON, mode));
+      blockCache.set(k, runBlock(n, supply, eBudget, eReq, EON, mode));
     }
     return blockCache.get(k);
   };
@@ -185,7 +192,7 @@ export function solve(p, opts = {}) {
     let profile = null;
     if (n.type === 'group') {
       // full capacity: unlimited inputs, full power, unlimited energy request
-      profile = evalBlock(n, null, 1, Infinity);
+      profile = evalBlock(n, null, Infinity, Infinity);
       ps = ps.map(pt => pt.energy ? pt : { ...pt, entry: { ...pt.res, amount: (pt.dir === 'in' ? profile.used[pt.id] : profile.out[pt.id]) || 0, probability: 1 } });
       mp = { cycles: 1, count: 1, perMachine: 1, eut: profile.eNeedFull, ticks: 20, tier: profile.tier, recipeTier: profile.tier, ocs: 0, override: false, block: true };
       if (ps.some(pt => pt.id === 'eo')) gp = { V: profile.eV, A: 1, count: 1, eff: 1, cap: profile.G, fuel: null, euEff: null, block: true };
@@ -221,13 +228,22 @@ export function solve(p, opts = {}) {
     g.fuelFull = g.euEff ? g.fullOut * 20 / g.euEff : 0; // fuel units per second at full draw
     if (info.n.type === 'generator') info.mp = { cycles: EON ? g.fuelFull : 0, count: g.count };
   }
-  const eState = { deliv: new Map(), use: new Map(), draw: new Map(), gen: new Map(), ratio: new Map() };
+  const eState = { deliv: new Map(), use: new Map(), draw: new Map(), gen: new Map(), ratio: new Map(), cut: new Map() };
   const need = (info, pt) => (!info.mp || info.mp.cycles == null) ? 0 : pt.entry.amount * info.mp.cycles;
   const sumOf = (list, m) => list.reduce((s, e) => s + m.get(e.id), 0);
   const consumer = t => t === 'machine' || t === 'generator' || t === 'group';
   // EU/t actually drawn: a machine at its load; a block draws what its inner machines take
   const actualEU = id => nodeInfo.get(id).n.type === 'group' ? (blockEval.get(id)?.eNeed ?? 0) : eNeed(id) * (util.get(id) || 0);
   const blockEval = new Map(), blockAvail = new Map(), blockCtx = new Map();
+  // what a consumer would draw if energy were unlimited (its load from materials alone);
+  // generators serve these requests, so power a starved machine does not take goes to the others
+  const matU = new Map(), blockReq = new Map();
+  const eRequest = id => {
+    const N = eNeed(id);
+    if (!(N > 0)) return 0;
+    const r = nodeInfo.get(id).n.type === 'group' ? blockReq.get(id) : (matU.has(id) ? N * matU.get(id) : undefined);
+    return r == null ? N : Math.max(0, Math.min(N, r));
+  };
 
   // ---- demand pass (uses current offered for splitting between parallel feeders)
   function demandPass(offered, demand) {
@@ -264,19 +280,34 @@ export function solve(p, opts = {}) {
       let fr = 1;
       if (g.fuel && g.euEff && g.fuelFull > 0) fr = Math.min(1, sumOf(inE.get(key(info.n.id, 'f')) || [], offered) / g.fuelFull);
       const avail = g.block ? Math.min(g.fullOut, blockAvail.get(info.n.id) ?? g.fullOut) : g.fullOut * fr;
-      for (const e of eOut.get(info.n.id) || []) {
+      // current requests at the generator side (full-load request scaled to what the machine would draw now)
+      const links = eOut.get(info.n.id) || [];
+      const reqNow = links.map(e => { const L = eLink.get(e.id), N = eNeed(e.to.node); return N > 0 ? L.reqSrc * eRequest(e.to.node) / N : 0; });
+      const tot = reqNow.reduce((a, b) => a + b, 0);
+      const k = tot > avail ? avail / tot : 1;
+      eState.cut.set(info.n.id, { fr, k });
+      links.forEach((e, i) => {
         const L = eLink.get(e.id);
-        const src = g.reqSrc > 0 ? L.reqSrc * avail / g.reqSrc : 0;
-        eState.deliv.set(e.id, L.V > 0 ? src * L.Vd / L.V : 0);
-      }
+        eState.deliv.set(e.id, L.V > 0 ? reqNow[i] * k * L.Vd / L.V : 0);
+      });
     }
+    // a machine's ratio is delivered / full need (it caps the load directly); a block's ratio is
+    // delivered / requested — the share of its current request it gets, passed to its inside
     for (const [mid, list] of eIn) {
-      const N = eNeed(mid);
-      eState.ratio.set(mid, N > 0 ? Math.min(1, list.reduce((s, e) => s + eState.deliv.get(e.id), 0) / N) : 1);
+      const D = list.reduce((s, e) => s + eState.deliv.get(e.id), 0);
+      const grp = nodeInfo.get(mid).n.type === 'group';
+      const N = grp ? eRequest(mid) : eNeed(mid);
+      eState.ratio.set(mid, N > 1e-12 ? Math.min(1, D / N) : 1);
     }
-    // inside a block: machines without their own energy link run on the block's ⚡ input
-    if (opts.blockPower != null) for (const info of nodeInfo.values())
-      if ((info.n.type === 'machine' || info.n.type === 'group') && !eIn.has(info.n.id) && eNeed(info.n.id) > 0) eState.ratio.set(info.n.id, opts.blockPower);
+    // inside a block: machines without their own energy link run on the block's ⚡ input, which
+    // covers this share of what they ask for (on demand, like a generator)
+    eState.blockK = 1;
+    if (opts.blockBudget != null) {
+      const list = [...nodeInfo.values()].filter(i => (i.n.type === 'machine' || i.n.type === 'group') && !eIn.has(i.n.id) && eNeed(i.n.id) > 0);
+      const tot = list.reduce((a, i) => a + eRequest(i.n.id), 0);
+      const kb = eState.blockK = tot > opts.blockBudget ? opts.blockBudget / tot : 1;
+      for (const { n } of list) eState.ratio.set(n.id, n.type === 'group' ? kb : Math.min(1, eRequest(n.id) * kb / eNeed(n.id)));
+    }
   }
   // actual EU use per link and generator output / fuel use, after machine loads are known
   function energyUse() {
@@ -298,8 +329,23 @@ export function solve(p, opts = {}) {
     }
   }
   const order = [...nodeInfo.values()].sort((a, b) => (a.gp ? 1 : 0) - (b.gp ? 1 : 0)); // generators last
+  // material-limited load of every machine for the current link values (its power request)
+  function materialLoads(offered) {
+    for (const info of nodeInfo.values()) {
+      const { n, ps, mp } = info;
+      if (n.type !== 'machine' || !mp || mp.cycles == null) continue;
+      let u = 1;
+      for (const pt of ps) {
+        if (pt.dir !== 'in' || pt.energy) continue;
+        const nv = need(info, pt);
+        if (nv > 0) u = Math.min(u, sumOf(inE.get(key(n.id, pt.id)) || [], offered) / nv);
+      }
+      matU.set(n.id, u);
+    }
+  }
   function supplyPass(offered, demand) {
     const no = new Map(medges.map(e => [e.id, 0]));
+    materialLoads(offered);
     energyPass(offered);
     let usedDone = false;
     for (const info of order) {
@@ -335,11 +381,15 @@ export function solve(p, opts = {}) {
         }
         const er = eState.ratio.get(n.id) ?? 1;
         const eReq = info.gp ? (eOut.get(n.id) || []).reduce((s, e) => s + (eState.draw.get(e.id) || 0), 0) : 0;
-        const ev = evalBlock(n, supply, er, eReq);
-        if (info.gp) blockAvail.set(n.id, evalBlock(n, supply, er, info.gp.fullOut).G);
+        // EU/t the block's ⚡ input delivers: its links, its share of an outer block's input, or unlimited
+        const eBudget = !EON ? Infinity : eIn.has(n.id) ? eIn.get(n.id).reduce((a, e) => a + eState.deliv.get(e.id), 0)
+          : opts.blockBudget != null && eState.ratio.has(n.id) ? eRequest(n.id) * er : Infinity;
+        const ev = evalBlock(n, supply, eBudget, eReq);
+        blockReq.set(n.id, ev.eReqNow);
+        if (info.gp) blockAvail.set(n.id, evalBlock(n, supply, eBudget, info.gp.fullOut).G);
         blockEval.set(n.id, ev);
-        blockCtx.set(n.id, { supply, eRatio: er, eReq });
-        util.set(n.id, any ? Math.max(0, Math.min(u, er)) : (ev.util ?? 1));
+        blockCtx.set(n.id, { supply, eBudget, eRatio: er, eReq });
+        util.set(n.id, any ? Math.max(0, Math.min(1, u * er)) : (ev.util ?? 1));
         for (const pt of ps) if (pt.dir === 'out' && !pt.energy) sup[pt.id] = ev.out[pt.id] || 0;
       } else if (n.type === 'generator') {
         const fuelUsed = EON ? (eState.gen.get(n.id)?.fuel || 0) : 0;
@@ -373,7 +423,7 @@ export function solve(p, opts = {}) {
     if (!Number.isFinite(a) || !Number.isFinite(b)) return a === b ? 0 : Infinity;
     return Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1e-300);
   };
-  let iterations = 0, converged = false, prevStep = null, extrapolations = 0;
+  let iterations = 0, converged = false, prevStep = null, extrapolations = 0, ePrev = new Map();
   const absTiny = 1e-15 * Math.max(1, ...[...demand.values()].filter(Number.isFinite).map(Math.abs));
   for (; iterations < ITER; iterations++) {
     const nd = demandPass(offered, demand);
@@ -386,6 +436,12 @@ export function solve(p, opts = {}) {
       if (Number.isFinite(a) && Number.isFinite(b) && Math.max(Math.abs(a), Math.abs(b)) > absTiny) delta = Math.max(delta, relDelta(a, b));
       else if (Number.isFinite(a) !== Number.isFinite(b)) delta = Infinity;
     }
+    // power shares and block requests trail the link values; they must have settled too
+    let eMove = 0;
+    const eNow = new Map([...eState.ratio].concat([...blockReq].map(([k, v]) => ['req:' + k, v])));
+    for (const [k, v] of eNow) eMove = Math.max(eMove, relDelta(v, ePrev.get(k) ?? NaN));
+    ePrev = eNow;
+    delta = Math.max(delta, eMove);
     const step = new Map(medges.map(e => [e.id, no.get(e.id) - offered.get(e.id)]));
     offered = no; demand = nd;
     if (delta <= 1e-12 && iterations > 0) { converged = true; break; }
@@ -400,7 +456,7 @@ export function solve(p, opts = {}) {
         if (r >= 0.999999 || (rho != null && Math.abs(r - rho) > 1e-6 * Math.max(1, rho))) { ok = false; break; }
         rho = r; moving++;
       }
-      if (ok && moving && rho != null) {
+      if (ok && moving && rho != null && eMove <= 1e-9) {
         const k = rho / (1 - rho);
         offered = new Map(medges.map(e => [e.id, Math.max(0, offered.get(e.id) + step.get(e.id) * k)]));
         extrapolations++;
@@ -467,12 +523,15 @@ export function solve(p, opts = {}) {
     if (!e.energy) continue;
     const L = eLink.get(e.id);
     if (!L) { edges[e.id] = { energy: true, resource: ENERGY, demand: 0, offered: 0, flow: 0, deficit: 0, surplus: 0, status: EON ? 'idle' : 'off', warnings: [] }; continue; }
+    // d: what the link carries at full machine load; q: what the machine asks for now (its
+    // material-limited load). A shortage is delivered < asked, not delivered < full need.
     const d = L.req, o = eState.deliv.get(e.id) || 0, f = eState.use.get(e.id) || 0, draw = eState.draw.get(e.id) || 0;
+    const Nm = eNeed(e.to.node), q = Nm > 0 ? d * eRequest(e.to.node) / Nm : 0;
     const t = tol(d, o);
     const g = byId.get(e.from.node), m = byId.get(e.to.node);
     const s = edges[e.id] = {
-      energy: true, resource: ENERGY, demand: d, offered: o, flow: f, deficit: d - o > t ? d - o : 0, surplus: 0,
-      status: d - o > t ? 'deficit' : (o > t || d > t ? 'ok' : 'idle'),
+      energy: true, resource: ENERGY, demand: d, request: q, offered: o, flow: f, deficit: q - o > t ? q - o : 0, surplus: 0,
+      status: q - o > t ? 'deficit' : (o > t || d > t ? 'ok' : 'idle'),
       V: L.V, Vd: L.Vd, drop: L.drop, length: L.len, lossPerBlock: L.loss,
       draw, loss: Math.max(0, draw - f), lossFull: Math.max(0, L.reqSrc - L.req),
       ampsPeak: L.V > 0 ? L.reqSrc / L.V : 0, ampsActual: L.V > 0 ? draw / L.V : 0, warnings: [],
@@ -498,8 +557,10 @@ export function solve(p, opts = {}) {
           const list = eIn.get(n.id) || [];
           const N = eNeed(n.id);
           const supplied = list.reduce((a, e) => a + (eState.deliv.get(e.id) || 0), 0);
-          const viaBlock = !list.length && opts.blockPower != null;
-          res.inputs[pt.id] = { need: N, supplied: list.length ? supplied : viaBlock ? N * opts.blockPower : N, used: actualEU(n.id), connected: list.length > 0 || viaBlock, viaBlock, res: ENERGY, energy: true };
+          const viaBlock = !list.length && opts.blockBudget != null;
+          const request = list.length || viaBlock ? eRequest(n.id) : N;
+          const got = list.length ? supplied : viaBlock ? request * eState.blockK : N;
+          res.inputs[pt.id] = { need: N, request, supplied: got, short: Math.max(0, request - got), used: actualEU(n.id), connected: list.length > 0 || viaBlock, viaBlock, res: ENERGY, energy: true };
           if (EON && !list.length && !viaBlock && N > 0) problems.push({ kind: 'unpowered', node: n.id, port: pt.id, text: `${label(n, r)}${$t(": питание не подключено —")} ${num0(N)} ${$t("EU/t не учтены")}` });
         } else {
           const list = eOut.get(n.id) || [];
@@ -536,10 +597,11 @@ export function solve(p, opts = {}) {
       res.powerAvg = mp?.eut != null && mp.cycles != null ? mp.eut * mp.count * u : null;
       let worst = null, wr = Infinity;
       for (const [pid, s] of Object.entries(res.inputs)) {
+        if (s.energy && !(s.short > 1e-9 * Math.max(1, s.need))) continue; // power covers what it asks for
         if (s.need > 0) { const ratio = s.supplied / s.need; if (ratio < wr) { wr = ratio; worst = pid; } }
       }
       res.limitedBy = u < 1 - 1e-7 ? worst : null;
-      res.energyNeed = eNeed(n.id);
+      res.energyNeed = eNeed(n.id); res.energyRequest = eRequest(n.id);
       if (mp?.cycles == null) problems.push({ kind: 'noduration', node: n.id, text: `${label(n, r)}${$t(": в рецепте нет длительности — задайте циклы/мин вручную")}` });
     }
     if (n.type === 'group') {
@@ -547,15 +609,18 @@ export function solve(p, opts = {}) {
       res.util = util.get(n.id) ?? 0;
       res.params = mp;
       res.powerFull = pf.powerFull; res.powerAvg = ev?.powerAvg ?? 0;
-      res.energyNeed = eNeed(n.id);
+      res.energyNeed = eNeed(n.id); res.energyRequest = eRequest(n.id);
       res.blockUtil = ev?.util ?? null;
       res.innerR = ev?.R || null;
-      res.ctx = blockCtx.get(n.id) || { supply: {}, eRatio: 1, eReq: 0 };
+      res.ctx = blockCtx.get(n.id) || { supply: {}, eBudget: Infinity, eRatio: 1, eReq: 0 };
       res.innerProblems = (ev?.R.problems || []).filter(x => x.kind !== 'unconnected').length;
       res.machines = pf.R ? Object.values(pf.R.nodes).filter(x => x.type === 'machine').length : 0;
       if (info.gp) Object.assign(res, { capacity: info.gp.cap, output: EON ? (eState.gen.get(n.id)?.out || 0) : 0 });
       let worst = null, wr = Infinity;
-      for (const [pid, s] of Object.entries(res.inputs)) if (s.need > 0) { const ratio = s.supplied / s.need; if (ratio < wr) { wr = ratio; worst = pid; } }
+      for (const [pid, s] of Object.entries(res.inputs)) {
+        if (s.energy && !(s.short > 1e-9 * Math.max(1, s.need))) continue;
+        if (s.need > 0) { const ratio = s.supplied / s.need; if (ratio < wr) { wr = ratio; worst = pid; } }
+      }
       res.limitedBy = res.util < 1 - 1e-7 ? worst : null;
       for (const [gid, v] of Object.entries(pf.used)) if (v >= BIG * 0.5) problems.push({ kind: 'unrouted', node: n.id, text: `${label(n)}${$t(": вход блока «")}${nm(info.ps.find(x => x.id === gid)?.res)}${$t("» уходит прямо на выход — потребность не ограничена")}` });
     }
@@ -566,6 +631,8 @@ export function solve(p, opts = {}) {
         params: g, capacity: g.cap, request: g.reqSrc || 0, fullOut: g.fullOut || 0, output: EON ? st.out : 0,
         fuelFull: EON ? g.fuelFull : 0, fuelUsed: EON ? st.fuel : 0,
         fuelRatio: fin && fin.need > 0 ? Math.min(1, fin.supplied / fin.need) : 1,
+        // the machines asked for more than it could give, and fuel (not capacity) was the limit
+        fuelLimits: EON && (eState.cut.get(n.id)?.k ?? 1) < 1 - 1e-9 && (eState.cut.get(n.id)?.fr ?? 1) < 1 - 1e-9,
         util: g.cap > 0 && EON ? st.out / g.cap : null,
       });
       // why does it give nothing? (shown on the card)
@@ -721,7 +788,7 @@ function affected(p, e, nodes, outE, key, eOut) {
     if (s.type === 'machine' || s.type === 'group') {
       if (s.util != null && s.util < 1 - 1e-7) { res.push({ node: id, util: s.util, limitedBy: s.limitedBy }); reduced = true; }
     } else if (s.type === 'generator') {
-      if (s.fuelRatio < 1 - 1e-7) { res.push({ node: id, util: s.fuelRatio, limitedBy: 'f' }); for (const x of eOut?.get(id) || []) q.push(x.to.node); }
+      if (s.fuelLimits) { res.push({ node: id, util: s.fuelRatio, limitedBy: 'f' }); for (const x of eOut?.get(id) || []) q.push(x.to.node); }
       reduced = true;
     } else if (s.type === 'sink') {
       res.push({ node: id, util: null });
