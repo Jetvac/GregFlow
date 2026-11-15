@@ -55,6 +55,45 @@ Next time, just double-click `start.bat`. Your schematics are saved in the `proj
 Install Python 3.9 or newer (`sudo apt install python3`, or from python.org on macOS), then run
 `./start.sh`. On macOS you can double-click `start.command`.
 
+#### Linux server: run as a service
+
+One command installs GregFlow as a systemd service. It downloads the recipe data, starts the
+planner, sets it to start at boot and prints the address to open:
+
+```bash
+./start.sh install
+```
+
+By default the planner listens only on the server itself, and the command prints an SSH tunnel to
+reach it from your computer:
+
+```bash
+ssh -N -L 8765:127.0.0.1:8765 user@server
+```
+
+Then open http://127.0.0.1:8765/ in your browser.
+
+To open it straight from other computers on your network, install it with `--lan`. **There is no
+login**: anyone who can reach the port can view and edit the schematics, so use this only on a
+trusted network or VPN.
+
+```bash
+./start.sh install --lan
+```
+
+| Command | What it does |
+|---|---|
+| `./start.sh install [--port N] [--lan \| --host ADDR] [--mc-dir PATH]` | install or reinstall the service, start it, print the address |
+| `./start.sh url` | print the address again |
+| `./start.sh status` · `./start.sh logs` | service state · last 100 log lines |
+| `./start.sh restart` | restart, for example after an update |
+| `./start.sh uninstall` | remove the service; projects and data stay |
+
+Run `install` as your normal user. It creates a user service and enables `loginctl enable-linger`
+so the service starts at boot without a login. If that step needs root, the script prints the
+`sudo` command. With `sudo ./start.sh install` it creates a system service instead, which runs
+as the owner of the planner folder.
+
 ### Updating
 
 Download the new release, unzip it, and copy your `projects` folder (and `data/custom` if you made

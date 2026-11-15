@@ -369,6 +369,36 @@ class Api(unittest.TestCase):
                          headers={"Origin": "http://evil.example", "Content-Type": "application/json"})
         self.assertEqual(s, 403)
 
+    def test_origin_must_match_host(self):
+        body = {"format": "gtnh-planner-project", "name": "zz-origin"}
+        # a page on another local port is not this planner
+        s, r = self.call("POST", "project", body, headers={"Origin": "http://127.0.0.1:1", "Content-Type": "application/json"})
+        self.assertEqual(s, 403)
+        # DNS rebinding: a hostile name pointed at 127.0.0.1 looks same-origin but is not a loopback name
+        s, r = self.call("POST", "project", body, headers={"Origin": f"http://evil.example:{self.port}",
+                                                          "Host": f"evil.example:{self.port}", "Content-Type": "application/json"})
+        self.assertEqual(s, 403)
+        s, r = self.call("GET", "status", headers={"Origin": f"http://127.0.0.1:{self.port}"})
+        self.assertEqual(s, 200)
+
+    def test_network_bind_accepts_own_address(self):
+        srv = app.make_server(self.planner, host="0.0.0.0", port=0)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            port = srv.server_address[1]
+            for origin, want in ((f"http://192.168.1.50:{port}", 400), ("http://evil.example", 403)):
+                req = urllib.request.Request(f"http://127.0.0.1:{port}/api/project", data=b"[]", method="POST",
+                                             headers={"Origin": origin, "Host": f"192.168.1.50:{port}"})
+                try:
+                    urllib.request.urlopen(req)
+                    code = 200
+                except urllib.error.HTTPError as e:
+                    code = e.code
+                self.assertEqual(code, want, origin)
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
 
 class Versions(unittest.TestCase):
     def test_page_and_server_versions_match(self):

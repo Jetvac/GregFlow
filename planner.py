@@ -6,6 +6,7 @@
     python planner.py --fetch-data       # download + verify the recipe snapshot / скачать снимок рецептов
     python planner.py --fetch-lang       # download Russian names (GTNH-Translations, GPL-3.0)
     python planner.py --check            # check data and installation without a server
+    python planner.py --host 0.0.0.0     # listen on the network (no password!) / слушать сеть (без пароля!)
 
 Everything above can also be done in the browser: the «Setup / Настройка» window.
 """
@@ -56,9 +57,34 @@ def free_port(start: int) -> int:
     return start
 
 
+def network_addresses(host: str) -> list:
+    """Addresses other machines can use; for 0.0.0.0 / :: these are this machine's own IPs."""
+    if host not in ("0.0.0.0", "::", ""):
+        return [f"[{host}]" if ":" in host else host]
+    ips = []
+    try:  # the address of the interface that routes outward (no packet is sent)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.0.2.1", 9))
+            ips.append(s.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except OSError:
+        pass
+    return ips or ["<this-machine-ip>"]
+
+
 def main():
     ap = argparse.ArgumentParser(description="GregFlow, a GTNH production line planner")
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="address to listen on; 0.0.0.0 opens the planner to the network (there is no login)")
+    ap.add_argument("--fixed-port", action="store_true",
+                    help="fail if --port is busy instead of taking the next free one (for services)")
     ap.add_argument("--mc-dir", help="Minecraft/GTNH folder (read-only); by default searched upwards and in settings")
     ap.add_argument("--no-browser", action="store_true")
     ap.add_argument("--fetch-data", action="store_true")
@@ -98,12 +124,21 @@ def main():
         print("Minecraft folder: not set (optional) / папка Minecraft не задана (необязательно)")
     if a.check:
         sys.exit(0 if st["catalog"] else 1)
-    port = free_port(a.port)
-    srv = app.make_server(planner, port=port)
+    port = a.port if a.fixed_port else free_port(a.port)
+    try:
+        srv = app.make_server(planner, host=a.host, port=port)
+    except OSError as e:
+        print(f"[!!] cannot listen on {a.host}:{port} / не удалось занять порт: {e}")
+        sys.exit(1)
     url = f"http://127.0.0.1:{port}/"
     print()
     print("=" * 64)
     print(f"  GregFlow is running / GregFlow запущен:  {url}")
+    if a.host not in ("127.0.0.1", "localhost", "::1"):
+        for ip in network_addresses(a.host):
+            print(f"  On the network / в сети:  http://{ip}:{port}/")
+        print("  Anyone who can reach this address can edit your schematics (no login).")
+        print("  Любой, кто видит этот адрес, может менять ваши схемы (входа нет).")
     print("  Keep this window open while you use it; close it to stop.")
     print("  Не закрывайте это окно, пока работаете; закройте — чтобы остановить.")
     print("=" * 64)

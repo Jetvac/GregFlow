@@ -1,6 +1,6 @@
 """GregFlow (GTNH production line planner) - local HTTP server (Python stdlib only).
 
-Binds to 127.0.0.1. All writes go to the planner's own data/ and projects/
+Binds to 127.0.0.1 by default (--host to listen on the network). All writes go to the planner's own data/ and projects/
 folders. The Minecraft installation (if any) is only read by install_check.
 """
 from __future__ import annotations
@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+import socket
 import threading
 import time
 import uuid
@@ -22,7 +23,7 @@ from . import lang as langmod
 from . import energy as energymod
 from . import setup as setupmod
 
-APP_VERSION = "1.1.2"
+APP_VERSION = "1.1.3"
 
 
 def _code_stamp() -> tuple:
@@ -484,8 +485,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def _check_origin(self):
         # Reject cross-site writes: only same-origin pages may modify local data.
+        # The Origin must be the page's own address. When bound to loopback, the address must also
+        # be a loopback name, so a hostile DNS name pointed at 127.0.0.1 cannot pass as "same origin".
         origin = self.headers.get("Origin")
-        if origin and not re.match(r"^http://(127\.0\.0\.1|localhost)(:\d+)?$", origin):
+        if not origin:
+            return
+        host = (self.headers.get("Host") or "").lower()
+        if origin.lower() != "http://" + host:
+            raise PermissionError("Запрос с чужого источника отклонён")
+        if self.server.loopback_only and not LOOPBACK_HOST.match(host):
             raise PermissionError("Запрос с чужого источника отклонён")
 
     # ---- dispatch ----
@@ -645,8 +653,16 @@ class Handler(BaseHTTPRequestHandler):
         return self.error("Неизвестный запрос: " + route, 404)
 
 
+LOOPBACK_HOST = re.compile(r"^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$")
+
+
+class _Server6(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+
 def make_server(planner: Planner, host="127.0.0.1", port=8765) -> ThreadingHTTPServer:
     handler = type("BoundHandler", (Handler,), {"planner": planner})
-    srv = ThreadingHTTPServer((host, port), handler)
+    srv = (_Server6 if ":" in host else ThreadingHTTPServer)((host, port), handler)
     srv.daemon_threads = True
+    srv.loopback_only = host in ("127.0.0.1", "localhost", "::1")
     return srv
